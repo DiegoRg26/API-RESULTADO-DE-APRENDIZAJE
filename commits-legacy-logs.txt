@@ -1,0 +1,117 @@
+# HISTORIAL DE COMMITS - REPOSITORIO LEGACY
+
+## Descripción
+Este archivo contiene el registro de cambios realizados en el proyecto durante su desarrollo inicial antes de la migración a un nuevo repositorio.
+
+---
+
+[22-07-2025]
+[TIPO]: Despliegue inicial
+
+DETALLES:
+* Despliegue de API con Slim PHP
+
+---
+
+[23-07-2025]
+[TIPO]: Funcionalidad de cuestionarios
+
+DETALLES:
++ Creación del controlador para manejar los periodos que se encuentran en la BD
++ Creación del EndPoint para el manejo de la información correspondiente a los periodos
++ Creación del controlador para manejar las aperturas
++ Creación del EndPoint para el manejo de la información correspondiente a las aperturas
+
+DESCRIPCIÓN:
+Adición del EndPoint y funcionalidad para obtener los cuestionarios creados y en apertura del usuario logeado
+
+---
+
+[24-07-2025]
+[TIPO]: Controlador y rutas
+
+DETALLES:
++ Adición de controlador para 'CrearCuestionarios'
+* Modificaciones en la descripción de las rutas
+
+---
+
+[25-07-2025]
+[TIPO]: Nueva funcionalidad de cuestionarios
+
+DETALLES:
++ Se agregó el nuevo controlador de crear cuestionario
++ Se creó el nuevo EndPoint
++ Se agregó un archivo JSON en el cual se especifica las diferentes estructuras que reciben los distintos métodos
+
+---
+
+[28-07-2025]
+[TIPO]: Mejoras de arquitectura
+
+DETALLES:
++ Variables de entorno habilitadas y utilizadas
++ Creación de carpeta 'Routes' en la cual se encuentran los distintos EndPoints clasificados según funcionalidad
+* Actualización del archivo 'FormatosJsonInputs' agregando las diferentes nuevas estructuras que se usan en los distintos EndPoints
++ Se agregó el controlador correspondiente a las funciones de asignación
++ Se agregó el respectivo EndPoint al nuevo controlador
+* Se actualizaron ciertas funciones para evitar la redundancia de código, colocando estas mismas como base en la clase 'Base controller'
+
+---
+
+[30-07-2025]
+[TIPO]: Funcionalidad de estudiantes
+
+DETALLES:
++ Se agregó el controlador de manejo de estudiantes
++ Se agregaron sus respectivos EndPoints
++ Se agregó un método para obtener los programas en el archivo 'BaseController' y se le agregó su respectivo EndPoint
+
+---
+
+[31-07-2025]
+[TIPO]: Controlador de resolución
+
+DETALLES:
++ Se agregó el controlador 'resolver_controller.php'
+* En el cual se encuentran todos los métodos relacionados a las vistas de resolver destinadas en el front
++ Se agregó el respectivo EndPoint al nuevo controlador
+
+---
+
+[01-08-2025]
+[TIPO]: Registro de intentos
+
+DETALLES:
++ Se agregó la función de 'guardarIntento'
+
+DESCRIPCIÓN:
+Por medio de la cual se guardan las respuestas que el estudiante marcó, adicional de también guardar su puntaje
+* Se realizaron actualizaciones en otros archivos, pero no son relevantes
+
+---
+
+[04-08-2025]
+[TIPO]: Resultados y mejoras de entorno
+
+DETALLES:
++ Se agregó el controlador 'resultado_controller.php' por medio del cual se pueden evidenciar los resultados de un estudiante en específico en una prueba
++ Se agregó el respectivo EndPoint relacionado al nuevo controlador
++ Se agregó un nuevo archivo llamado '.env.dis' relacionado con las distintas variables de entorno, evidenciando el nombre de estas para que los distintos colaboradores puedan crearlas en sus respectivas máquinas
+* Se actualizaron los distintos archivos de rutas dentro de la carpeta 'Routes' creando nuevas agrupaciones asignando rutas aún más específicas sobre los distintos conjuntos de rutas ya existentes
+- Se movieron algunos controladores 'legacy' a la carpeta de 'migraciones' evidenciando así que ya se han migrado dichas funcionalidades a la nueva estructura de código y sistema de archivos
+
+---
+
+[05-08-2025]
+[TIPO]: Correcciones y mantenimiento
+
+DETALLES:
+* Actualización de descripciones en archivo de enrutamiento
+* Corrección de git add .errorgit add . en archivos de controladores
+
+---
+
+## Notas importantes
+
+Este archivo representa el historial completo de cambios del repositorio legacy antes de la migración. Se ha mantenido como referencia histórica para el equipo de desarrollo.
