@@ -1,10 +1,12 @@
+# ![Logo](https://axis.uninunez.edu.co/images/uninunez/vm/logotxtteal.svg)
+
 # API de Resultados de Aprendizaje
 
 Backend API para la gestión de cuestionarios y resultados de aprendizaje.
 
 ## Descripción
 
-Este proyecto es una API RESTful desarrollada en PHP que permite la gestión completa de cuestionarios educativos, incluyendo:
+Este proyecto es una API RESTful desarrollada en Slim framework de PHP que permite la gestión completa de cuestionarios educativos, incluyendo:
 
 - Autenticación de usuarios mediante JWT
 - Creación y administración de cuestionarios
