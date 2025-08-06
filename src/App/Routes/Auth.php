@@ -14,7 +14,7 @@ $subgroup->get('/verify', 'App\Controllers\login_controller:verifyToken');
 $subgroup->post('/refresh', 'App\Controllers\login_controller:refreshToken');
 
 // Obtener información del usuario autenticado
-$subgroup->post('/me', 'App\Controllers\login_controller:getCurrentUser');
+$subgroup->get('/me', 'App\Controllers\login_controller:getCurrentUser');
 
 // Logout (cerrar sesión)
 $subgroup->post('/logout', 'App\Controllers\login_controller:logout');

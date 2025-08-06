@@ -203,5 +203,24 @@ class BaseController{
             return $this->errorResponse($response, 'Error al obtener los programas: ' . $e->getMessage(), 500);
         }
     }
+
+    public function getProgramaById(Request $request, Response $response, array $args): Response{
+        try{
+            $db = $this->container->get('db');
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $programa_id = $args['id'];
+            $sql_get_programa = "SELECT id, nombre FROM programa WHERE id = :programa_id ORDER BY nombre";
+            $stmt_get_programa = $db->prepare($sql_get_programa);
+            $stmt_get_programa->bindParam(":programa_id", $programa_id);
+            $stmt_get_programa->execute();
+            $programa = $stmt_get_programa->fetch(PDO::FETCH_ASSOC);
+            return $this->successResponse($response, "Programa obtenido", [
+                'programa' => $programa
+            ]);
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al obtener los programas: ' . $e->getMessage(), 500);
+        }
+    }
 }
 

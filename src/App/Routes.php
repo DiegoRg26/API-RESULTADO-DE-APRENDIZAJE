@@ -25,7 +25,7 @@ $app->group('/api', function(RouteCollectorProxy $group){
     
     $group->get('/test', 'App\Controllers\test:getTesteo');
     //===========================[Rutas de Programas]=========================
-    $group->get('/programas', 'App\Controllers\BaseController:getProgramas');
+    @include __DIR__ . '/Routes/Programas.php';
     
     //===========================[Rutas de Autenticación]=========================
     @include __DIR__ . '/Routes/Auth.php';
