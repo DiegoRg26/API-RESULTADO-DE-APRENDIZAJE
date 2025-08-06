@@ -1,26 +1,27 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/cuestionarios', function(RouteCollectorProxy $group){
+$group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
 
     // Obtener cuestionarios creados por el usuario
-    $group->get('/', 'App\Controllers\MenuCuestionario_controller:getMisCuestionarios');
+    $subgroup->get('', 'App\Controllers\MenuCuestionario_controller:getMisCuestionarios');
     
     // Obtener cuestionarios abiertos con estado
-    $group->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
+    $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
     
     // Obtener programas disponibles para crear cuestionario
-    $group->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
+    $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
     
     // Crear cuestionario
-    $group->post('/crear', 'App\Controllers\crearCuestionario_controller:crearCuestionario');
+    $subgroup->post('/crear', 'App\Controllers\crearCuestionario_controller:crearCuestionario');
     
     // Anexar preguntas a cuestionario
-    $group->post('/{id}/anexar-preguntas', 'App\Controllers\crearCuestionario_controller:anexarPreguntasAndOpciones');
+    $subgroup->post('/{id}/anexar-preguntas', 'App\Controllers\crearCuestionario_controller:anexarPreguntasAndOpciones');
     
     // Obtener preguntas y opciones de un cuestionario
-    $group->get('/{id}/preguntas-opciones', 'App\Controllers\resolver_controller:obtenerPreguntasyOpciones');
+    $subgroup->get('/{id}/preguntas-opciones', 'App\Controllers\resolver_controller:obtenerPreguntasyOpciones');
     
     // Guardar intento de resolver cuestionario
-    $group->post('/{id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
+    $subgroup->post('/{id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
+    
 });

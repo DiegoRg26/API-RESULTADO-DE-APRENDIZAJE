@@ -19,24 +19,29 @@ $app->add(function ($request, $handler) {
         ->withHeader('Access-Control-Allow-Credentials', 'true');
 });
 // Grupo de rutas de testing adicional
+// $app->group('/api', function(RouteCollectorProxy $group){
+// });
 $app->group('/api', function(RouteCollectorProxy $group){
+    
     $group->get('/test', 'App\Controllers\test:getTesteo');
-});
-$app->group('/api', function(RouteCollectorProxy $group){
-
     //===========================[Rutas de Programas]=========================
-    $group->get('/programas/get', 'App\Controllers\BaseController:getProgramas');
+    $group->get('/programas', 'App\Controllers\BaseController:getProgramas');
     
     //===========================[Rutas de Autenticación]=========================
-    require __DIR__ . '/Routes/Auth.php';
+    @include __DIR__ . '/Routes/Auth.php';
+    
     //===========================[Rutas de Cuestionarios]=========================
-    require __DIR__ . '/Routes/Cuestionario.php';
+    @include __DIR__ . '/Routes/Cuestionario.php';
+    
     //==============================[Rutas de Periodos]===========================
-    require __DIR__ . '/Routes/Periodo.php';
+    @include __DIR__ . '/Routes/Periodo.php';
+    
     //==============================[Rutas de Aperturas]==========================
-    require __DIR__ . '/Routes/Apertura.php';
+    @include __DIR__ . '/Routes/Apertura.php';
+    
     //==============================[Rutas de Asignación]==========================
-    require __DIR__ . '/Routes/Asignacion.php';
+    @include __DIR__ . '/Routes/Asignacion.php';
+    
     //==============================[Rutas de Estudiantes]==========================
-    require __DIR__ . '/Routes/Estudiantes.php';
+    @include __DIR__ . '/Routes/Estudiantes.php';
 });

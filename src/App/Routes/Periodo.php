@@ -1,27 +1,27 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/periodos', function(RouteCollectorProxy $group){
+$group->group('/periodo', function(RouteCollectorProxy $subgroup){
 
     // Listar periodos activos
-    $group->get('/', 'App\Controllers\periodo_controller:getActive');
+    $subgroup->get('', 'App\Controllers\periodo_controller:getActive');
 
-    // Obtener periodo específico por ID
-    $group->get('/{id}', 'App\Controllers\periodo_controller:getById');
+    // Listar periodos inactivos
+    $subgroup->get('/inactive', 'App\Controllers\periodo_controller:getInactive');
 
     // Crear nuevo periodo
-    $group->post('/create', 'App\Controllers\periodo_controller:create');
+    $subgroup->post('/create', 'App\Controllers\periodo_controller:create');
 
     // Actualizar periodo existente
-    // $group->put('/periodos/{id}', 'App\Controllers\periodo_controller:update');
+    // $subgroup->put('/periodos/{id}', 'App\Controllers\periodo_controller:update');
+    
+    // Obtener periodo específico por ID
+    $subgroup->get('/{id}', 'App\Controllers\periodo_controller:getById');
     
     // Desactivar periodo
-    $group->delete('/{id}', 'App\Controllers\periodo_controller:deactivate');
+    $subgroup->delete('/{id}', 'App\Controllers\periodo_controller:deactivate');
     
     // Reactivar periodo
-    $group->post('/{id}/activate', 'App\Controllers\periodo_controller:activate');
-    
-    // Listar periodos inactivos
-    $group->get('/inactive', 'App\Controllers\periodo_controller:getInactive');
+    $subgroup->post('/{id}/activate', 'App\Controllers\periodo_controller:activate');
     
 });

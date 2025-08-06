@@ -1,20 +1,22 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/auth', function(RouteCollectorProxy $group){
+
+$group->group('/auth', function(RouteCollectorProxy $subgroup){
 
 // Login de usuario
-$group->post('/', 'App\Controllers\login_controller:authenticate');
+$subgroup->post('', 'App\Controllers\login_controller:authenticate');
 
 // Verificar token JWT ✅
-$group->get('/verify', 'App\Controllers\login_controller:verifyToken');
+$subgroup->get('/verify', 'App\Controllers\login_controller:verifyToken');
 
 // Refrescar token JWT ✅
-$group->post('/refresh', 'App\Controllers\login_controller:refreshToken');
+$subgroup->post('/refresh', 'App\Controllers\login_controller:refreshToken');
 
 // Obtener información del usuario autenticado
-$group->post('/me', 'App\Controllers\login_controller:getCurrentUser');
+$subgroup->post('/me', 'App\Controllers\login_controller:getCurrentUser');
 
 // Logout (cerrar sesión)
-$group->post('/logout', 'App\Controllers\login_controller:logout');
+$subgroup->post('/logout', 'App\Controllers\login_controller:logout');
+
 });
