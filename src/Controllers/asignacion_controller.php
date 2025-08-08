@@ -20,6 +20,8 @@ class asignacion_controller extends BaseController{
     }
 
     public function crearAsignacion(Request $request, Response $response, array $args): Response {
+        $stmt_crear_asignacion = null;
+        $db = null;
         try {
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -60,13 +62,21 @@ class asignacion_controller extends BaseController{
                 $db->rollback();
                 return $this->errorResponse($response, 'Error al crear asignaciones: ' . $e->getMessage(), 500);
             }
-    
         } catch (Exception $e) {
             return $this->errorResponse($response, 'Error interno del servidor: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_crear_asignacion !== null){
+                $stmt_crear_asignacion = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function getAsignaciones(Request $request, Response $response, array $args): Response{
+        $stmt_get_asignaciones = null;
+        $db = null;
         try{
             $docente_id = $this->getUserIdFromToken($request);
             $db = $this->container->get('db');
@@ -93,10 +103,19 @@ class asignacion_controller extends BaseController{
                 ]);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener las asignaciones: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_get_asignaciones !== null){
+                $stmt_get_asignaciones = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function getAsignacionesByApertura(Request $request, Response $response, array $args): Response{
+        $stmt_get_asignaciones = null;
+        $db = null;
         try{
             $db = $this->container->get('db');
             $docente_id = $this->getUserIdFromToken($request);
@@ -120,10 +139,19 @@ class asignacion_controller extends BaseController{
             ]);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener las asignaciones: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_get_asignaciones !== null){
+                $stmt_get_asignaciones = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function deleteAsignacion(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_verificar = null;
         try{
             //verificar que la asignacion pertenezca al docente
             $id_asignacion = $args['id_asignacion'];
@@ -153,10 +181,20 @@ class asignacion_controller extends BaseController{
                     }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al eliminar la asignación: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_verificar !== null){
+                $stmt_verificar = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function deleteAllAsignaciones(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_verificar = null;
+        $stmt_eliminar = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -192,6 +230,16 @@ class asignacion_controller extends BaseController{
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al eliminar las asignaciones: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_verificar !== null){
+                $stmt_verificar = null;
+            }
+            if($stmt_eliminar !== null){
+                $stmt_eliminar = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 }

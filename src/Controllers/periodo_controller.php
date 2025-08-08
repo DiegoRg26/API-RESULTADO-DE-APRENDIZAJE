@@ -30,8 +30,9 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function create(Request $request, Response $response, array $args): Response
-	{
+	public function create(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 			$inputData = $this->getJsonInput($request);
@@ -79,6 +80,13 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en create periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -91,8 +99,9 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function update(Request $request, Response $response, array $args): Response
-	{
+	public function update(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 			$id = $args['id'] ?? null;
@@ -150,6 +159,13 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en update periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -162,8 +178,10 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function deactivate(Request $request, Response $response, array $args): Response
-	{
+	public function deactivate(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$check_stmt = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 			$id = $args['id'] ?? null;
@@ -207,6 +225,16 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en deactivate periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($check_stmt !== null){
+				$check_stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -219,8 +247,9 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function activate(Request $request, Response $response, array $args): Response
-	{
+	public function activate(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 			$id = $args['id'] ?? null;
@@ -254,6 +283,13 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en activate periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -266,8 +302,9 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getActive(Request $request, Response $response, array $args): Response
-	{
+	public function getActive(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 
@@ -294,6 +331,13 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getActive periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -306,8 +350,9 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getInactive(Request $request, Response $response, array $args): Response
-	{
+	public function getInactive(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			$db = $this->container->get('db');
 
@@ -334,6 +379,13 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getInactive periodo: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -346,8 +398,7 @@ class periodo_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getById(Request $request, Response $response, array $args): Response
-	{
+	public function getById(Request $request, Response $response, array $args): Response{
 		try {
 			$db = $this->container->get('db');
 			$id = $args['id'] ?? null;
@@ -386,15 +437,15 @@ class periodo_controller extends BaseController
 	 * @param int $periodo_id
 	 * @return array
 	 */
-	private function obtenerAperturasPeriodo(PDO $db, int $periodo_id): array
-	{
+	private function obtenerAperturasPeriodo(PDO $db, int $periodo_id): array{
+		$stmt = null;
 		try {
 			$query = "SELECT 
 						SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as aperturas_activas,
 						SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as aperturas_inactivas,
 						COUNT(*) as total_aperturas
-					  FROM apertura 
-					  WHERE id_periodo = :periodo_id";
+				    FROM apertura 
+					WHERE id_periodo = :periodo_id";
 			$stmt = $db->prepare($query);
 			$stmt->bindParam(':periodo_id', $periodo_id);
 			$stmt->execute();
@@ -406,6 +457,10 @@ class periodo_controller extends BaseController
 				'aperturas_inactivas' => 0,
 				'total_aperturas' => 0
 			];
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
 		}
 	}
 
@@ -417,8 +472,8 @@ class periodo_controller extends BaseController
 	 * @param bool $activeOnly Solo activos
 	 * @return array|false
 	 */
-	private function getPeriodoById(PDO $db, int $id, bool $activeOnly = true)
-	{
+	private function getPeriodoById(PDO $db, int $id, bool $activeOnly = true){
+		$stmt = null;
 		try {
 			$query = "SELECT * FROM periodo WHERE id = :id";
 			if ($activeOnly) {
@@ -432,6 +487,10 @@ class periodo_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getPeriodoById: " . $e->getMessage());
 			return false;
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
 		}
 	}
 

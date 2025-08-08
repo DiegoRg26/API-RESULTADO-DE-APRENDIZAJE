@@ -18,9 +18,6 @@ $app->add(function ($request, $handler) {
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
         ->withHeader('Access-Control-Allow-Credentials', 'true');
 });
-// Grupo de rutas de testing adicional
-// $app->group('/api', function(RouteCollectorProxy $group){
-// });
 $app->group('/api', function(RouteCollectorProxy $group){
     
     $group->get('/test', 'App\Controllers\test:getTesteo');

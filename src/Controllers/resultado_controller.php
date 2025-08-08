@@ -19,6 +19,8 @@ class resultado_Controller extends BaseController{
 
     // Verificar si el intento existe y pertenece al usuario
     public function verificaciones($intento_id, $usuario_id){
+        $db = null;
+        $stmt_verificar = null;
         try{
             $db = $this->container->get('db');
             $query_verificar = "SELECT ic.id 
@@ -36,11 +38,20 @@ class resultado_Controller extends BaseController{
             return true;
         }catch(Exception $e){
             return false;
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
+            if($stmt_verificar !== null){
+                $stmt_verificar = null;
+            }
         }
     }
 
     // Obtener los resultados del intento
     public function obtenerResultado(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_resultado = null;
         try{
             $db = $this->container->get('db');
             $inputData = $this->getJsonInput($request);
@@ -127,10 +138,19 @@ class resultado_Controller extends BaseController{
             ]);
         }catch(Exception $e){
             return $this->errorResponse($response, "Error al obtener los resultados: " . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
+            if($stmt_resultado !== null){
+                $stmt_resultado = null;
+            }
         }
     }
 
     public function obtenerDetalles(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_detalles = null;
         try{
             $db = $this->container->get('db');
             $inputData = $this->getJsonInput($request);
@@ -177,6 +197,13 @@ class resultado_Controller extends BaseController{
             ]);
         }catch(Exception $e){
             return $this->errorResponse($response, "Error al obtener los detalles: " . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
+            if($stmt_detalles !== null){
+                $stmt_detalles = null;
+            }
         }
     }
 }

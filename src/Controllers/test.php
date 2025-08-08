@@ -23,9 +23,6 @@ class test extends BaseController{
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
-
-
-
     }
 }
 

@@ -41,8 +41,9 @@ class apertura_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getCuestionariosDisponibles(Request $request, Response $response, array $args): Response
-	{
+	public function getCuestionariosDisponibles(Request $request, Response $response, array $args): Response{
+		$stmt = null;
+		$db = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -89,6 +90,13 @@ class apertura_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getCuestionariosDisponibles: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -101,8 +109,9 @@ class apertura_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getPeriodosActivos(Request $request, Response $response, array $args): Response
-	{
+	public function getPeriodosActivos(Request $request, Response $response, array $args): Response{
+		$stmt = null;
+		$db = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -128,6 +137,13 @@ class apertura_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getPeriodosActivos: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -140,8 +156,9 @@ class apertura_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getAperturas(Request $request, Response $response, array $args): Response
-	{
+	public function getAperturas(Request $request, Response $response, array $args): Response{
+		$stmt = null;
+		$db = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -153,8 +170,7 @@ class apertura_controller extends BaseController
 			}
 			
 			// Consulta para obtener aperturas activas del usuario
-			$query = "
-				SELECT 
+			$query = "SELECT 
 					a.id, 
 					c.titulo, 
 					c.descripcion,
@@ -204,6 +220,13 @@ class apertura_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getAperturas: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -216,8 +239,12 @@ class apertura_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function create(Request $request, Response $response, array $args): Response
-	{
+	public function create(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt_verificar = null;
+		$stmt_verificar_apertura = null;
+		$stmt_crear_apertura = null;
+		$stmt_nueva_apertura = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -338,6 +365,22 @@ class apertura_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en create apertura: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt_verificar !== null){
+				$stmt_verificar = null;
+			}
+			if($stmt_verificar_apertura !== null){
+				$stmt_verificar_apertura = null;
+			}
+			if($stmt_crear_apertura !== null){
+				$stmt_crear_apertura = null;
+			}
+			if($stmt_nueva_apertura !== null){
+				$stmt_nueva_apertura = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 
@@ -350,8 +393,10 @@ class apertura_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function deactivate(Request $request, Response $response, array $args): Response
-	{
+	public function deactivate(Request $request, Response $response, array $args): Response{
+		$stmt_verificar = null;
+		$stmt_desactivar = null;
+		$db = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -369,8 +414,7 @@ class apertura_controller extends BaseController
 			}
 			
 			// Verificar que la apertura pertenezca al usuario actual
-			$query_verificar = "
-				SELECT 
+			$query_verificar = "SELECT 
 					a.id
 				FROM 
 					apertura a
@@ -403,6 +447,16 @@ class apertura_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en deactivate apertura: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt_verificar !== null){
+				$stmt_verificar = null;
+			}
+			if($stmt_desactivar !== null){
+				$stmt_desactivar = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 

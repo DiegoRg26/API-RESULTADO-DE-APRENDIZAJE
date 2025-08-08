@@ -30,6 +30,8 @@ class crearCuestionario_controller extends BaseController{
 	 * @return Response
 	 */
     public function getProgramasDisponibles(Request $request, Response $response, array $args): Response{
+        $stmt_programas = null;
+        $db = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -66,6 +68,13 @@ class crearCuestionario_controller extends BaseController{
         }catch(Exception $e){
             error_log("Error en getProgramasDisponibles: " . $e->getMessage());
             return $this->errorResponse($response, 'Error interno del servidor', 500);
+        }finally{
+            if($stmt_programas !== null){
+                $stmt_programas = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
     /**
@@ -79,6 +88,9 @@ class crearCuestionario_controller extends BaseController{
      */
 
     public function crearCuestionario(Request $request, Response $response, Array $args): Response{
+        $db = null;
+        $stmt_insert_cuestionario = null;
+        $stmt_insert_relacion = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -135,10 +147,23 @@ class crearCuestionario_controller extends BaseController{
             error_log("Error en crearCuestionario: " . $e->getMessage());
             $db->rollBack();
             return $this->errorResponse($response, 'Error interno del servidor', 500);
+        }finally{
+            if($stmt_insert_cuestionario !== null){
+                $stmt_insert_cuestionario = null;
+            }
+            if($stmt_insert_relacion !== null){
+                $stmt_insert_relacion = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function anexarPreguntasAndOpciones(Request $request, Response $response, Array $args): Response{
+        $db = null;
+        $stmt_insert_pregunta = null;
+        $stmt_insert_opcion = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -225,6 +250,16 @@ class crearCuestionario_controller extends BaseController{
             error_log("Error en anexarPreguntas: " . $e->getMessage());
             $error_message = $e->getMessage();
             return $this->errorResponse($response, $error_message, 500);
+        }finally{
+            if($stmt_insert_pregunta !== null){
+                $stmt_insert_pregunta = null;
+            }
+            if($stmt_insert_opcion !== null){
+                $stmt_insert_opcion = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 

@@ -42,8 +42,8 @@ class login_controller extends BaseController
      * @param array $args
      * @return Response
      */
-    public function authenticate(Request $request, Response $response, array $args): Response
-    {
+    public function authenticate(Request $request, Response $response, array $args): Response{
+        $db = null;
         try {
             // Obtener conexión a la base de datos
             $db = $this->container->get('db');
@@ -89,6 +89,10 @@ class login_controller extends BaseController
         } catch (Exception $e) {
             error_log("Error en authenticate: " . $e->getMessage());
             return $this->errorResponse($response, 'Error interno del servidor', 500);
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
         }
     }
     
@@ -182,8 +186,7 @@ class login_controller extends BaseController
      * @param array $args
      * @return Response
      */
-    public function getCurrentUser(Request $request, Response $response, array $args): Response
-    {
+    public function getCurrentUser(Request $request, Response $response, array $args): Response{
         try {
             $db = $this->container->get('db');
             $token = $this->getBearerToken($request);
@@ -236,8 +239,7 @@ class login_controller extends BaseController
      * @param string $email Email del usuario
      * @return array|false Datos del usuario o false si no existe
      */
-    private function findUserByEmail(PDO $db, string $email)
-    {
+    private function findUserByEmail(PDO $db, string $email){
         try {
             $query = "SELECT id, nombre, email, identificacion, password, programa_id, fecha_registro 
                         FROM docente 

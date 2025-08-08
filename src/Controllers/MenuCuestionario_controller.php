@@ -33,8 +33,9 @@ class MenuCuestionario_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getMisCuestionarios(Request $request, Response $response, array $args): Response
-	{
+	public function getMisCuestionarios(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -66,6 +67,13 @@ class MenuCuestionario_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getMisCuestionarios: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 	
@@ -78,8 +86,9 @@ class MenuCuestionario_controller extends BaseController
 	 * @param array $args
 	 * @return Response
 	 */
-	public function getCuestionariosAbiertos(Request $request, Response $response, array $args): Response
-	{
+	public function getCuestionariosAbiertos(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
 		try {
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
@@ -145,6 +154,13 @@ class MenuCuestionario_controller extends BaseController
 		} catch (Exception $e) {
 			error_log("Error en getCuestionariosAbiertos: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
 		}
 	}
 	

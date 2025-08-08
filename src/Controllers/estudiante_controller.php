@@ -19,6 +19,8 @@ class estudiante_controller extends BaseController{
     }
 
     public function getEstudiantes(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt = null;
         try{
             $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
@@ -61,10 +63,19 @@ class estudiante_controller extends BaseController{
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener los estudiantes: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function agregarEstudiante(Request $request, Response $response, array $args): Response{
+        $stmt = null;
+        $db = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -120,10 +131,19 @@ class estudiante_controller extends BaseController{
         }catch(Exception $e){
             $db->rollBack();
             return $this->errorResponse($response, 'Error al agregar el estudiante: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function deshabilitarEstudiante(Request $request, Response $response, array $args): Response{
+        $stmt = null;
+        $db = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -146,10 +166,19 @@ class estudiante_controller extends BaseController{
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al deshabilitar el estudiante: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function habilitarEstudiante(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt = null;
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
@@ -172,6 +201,13 @@ class estudiante_controller extends BaseController{
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al habilitar el estudiante: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 }

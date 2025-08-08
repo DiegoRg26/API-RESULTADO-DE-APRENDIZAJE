@@ -16,6 +16,10 @@ class resolver_controller extends BaseController{
     }
 
     public function verificarResolucion(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_cuestionario = null;
+        $stmt_periodo = null;
+        $stmt_verificar = null;
         try{
             $db = $this->container->get('db');
             $cuestionario_id = $args['id'];
@@ -48,7 +52,7 @@ class resolver_controller extends BaseController{
                 AND rcp.activo = 1
             LIMIT 1";
 
-            $stmt_cuestionario = $this->$db->prepare($query_cuestionario);
+            $stmt_cuestionario = $db->prepare($query_cuestionario);
             $stmt_cuestionario->bindParam(':id', $cuestionario_id);
             $stmt_cuestionario->execute();
             if($stmt_cuestionario->rowCount() == 0){
@@ -112,10 +116,25 @@ class resolver_controller extends BaseController{
             ]);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al verificar la resolución: ' . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
+            if($stmt_cuestionario !== null){
+                $stmt_cuestionario = null;
+            }
+            if($stmt_periodo !== null){
+                $stmt_periodo = null;
+            }
+            if($stmt_verificar !== null){
+                $stmt_verificar = null;
+            }
         }
     }
 
     public function obtenerPreguntasyOpciones(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_preguntas = null;
         try{
             $cuestionario_id = $args['id'];
             $db = $this->container->get('db');
@@ -172,10 +191,23 @@ class resolver_controller extends BaseController{
             return $this->successResponse($response, 'Preguntas y opciones obtenidas correctamente', $resultado);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener las preguntas y opciones: ' . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){
+                $db = null;
+            }
+            if($stmt_preguntas !== null){
+                $stmt_preguntas = null;
+            }
         }
     }
 
     public function guardarIntento(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_verificar = null;
+        $stmt_completado = null;
+        $stmt_preguntas = null;
+        $stmt_intento = null;
+        $stmt_respuesta = null;
         try{
             $db = $this->container->get('db');
             $cuestionario_id = $args['id'];
@@ -370,6 +402,25 @@ class resolver_controller extends BaseController{
                 $db->rollBack();
             }
             return $this->errorResponse($response, 'Error al guardar el intento: ' . $e->getMessage(), 500);
+        }finally{
+        if($db !== null){
+            $db = null;
+        }
+        if($stmt_verificar !== null){
+            $stmt_verificar = null;
+        }
+        if($stmt_completado !== null){
+            $stmt_completado = null;
+        }
+        if($stmt_preguntas !== null){
+            $stmt_preguntas = null;
+        }
+        if($stmt_intento !== null){
+            $stmt_intento = null;
+        }
+        if($stmt_respuesta !== null){
+            $stmt_respuesta = null;
+        }
         }
     }
 

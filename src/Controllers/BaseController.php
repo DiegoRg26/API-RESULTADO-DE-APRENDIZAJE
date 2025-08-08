@@ -43,8 +43,7 @@ class BaseController{
 	 * @param string $input
 	 * @return string
 	 */
-	public function sanitizeInput(string $input): string
-	{
+	public function sanitizeInput(string $input): string{
 		return htmlspecialchars(strip_tags(trim($input)));
 	}
 
@@ -85,8 +84,7 @@ class BaseController{
      * @param int $statusCode Código de estado HTTP
      * @return Response
      */
-    public function errorResponse(Response $response, string $message, int $statusCode = 400): Response
-    {
+    public function errorResponse(Response $response, string $message, int $statusCode = 400): Response{
         $responseData = [
             'success' => false,
             'message' => $message,
@@ -169,6 +167,8 @@ class BaseController{
 	}
 
     public function getProgramas(Request $request, Response $response, array $args): Response{
+        $stmt = null;
+        $db = null;
         try{
             $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
@@ -201,10 +201,19 @@ class BaseController{
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener los programas: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 
     public function getProgramaById(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_get_programa = null;
         try{
             $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
@@ -220,6 +229,13 @@ class BaseController{
             ]);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al obtener los programas: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_get_programa !== null){
+                $stmt_get_programa = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
         }
     }
 }
