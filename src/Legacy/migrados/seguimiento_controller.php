@@ -62,8 +62,7 @@ if (!$cuestionario) {
 }
 
 // Obtener estudiantes asignados y su estado
-$query_estudiantes = "
-    SELECT 
+$query_estudiantes = "SELECT 
         e.id,
         e.nombre,
         e.email,

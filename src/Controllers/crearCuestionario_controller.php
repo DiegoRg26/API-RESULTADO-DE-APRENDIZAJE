@@ -29,54 +29,54 @@ class crearCuestionario_controller extends BaseController{
 	 * @param array $args
 	 * @return Response
 	 */
-    public function getProgramasDisponibles(Request $request, Response $response, array $args): Response{
-        $stmt_programas = null;
-        $db = null;
-        try{
-            $inputData = $this->getJsonInput($request);
-            $db = $this->container->get('db');
-            if(!$inputData){
-                return $this->errorResponse($response, 'Datos JSON inválidos', 400);
-            }
-            if(isset($inputData['programa_id'])){
-                $programa_id = $this->sanitizeInput($inputData['programa_id']);
-                $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
-                            FROM programa p 
-                            JOIN nivel n ON p.id_nivel = n.id 
-                            JOIN campus cam ON p.id_campus = cam.id
-                            WHERE p.id = :programa_id";
-                $stmt_programas = $db->prepare($query_programas);
-                $stmt_programas->bindParam(':programa_id', $programa_id);
-                $stmt_programas->execute();
-                $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
-                return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
-                    'programas' => $programas
-                ]);
-            }else{
-                $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
-                            FROM programa p 
-                            JOIN nivel n ON p.id_nivel = n.id 
-                            JOIN campus cam ON p.id_campus = cam.id";
-                $stmt_programas = $db->prepare($query_programas);
-                $stmt_programas->execute();
-                $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
+    // public function getProgramasDisponibles(Request $request, Response $response, array $args): Response{
+    //     $stmt_programas = null;
+    //     $db = null;
+    //     try{
+    //         $inputData = $this->getJsonInput($request);
+    //         $db = $this->container->get('db');
+    //         if(!$inputData){
+    //             return $this->errorResponse($response, 'Datos JSON inválidos', 400);
+    //         }
+    //         if(isset($inputData['programa_id'])){
+    //             $programa_id = $this->sanitizeInput($inputData['programa_id']);
+    //             $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
+    //                         FROM programa p 
+    //                         JOIN nivel n ON p.id_nivel = n.id 
+    //                         JOIN campus cam ON p.id_campus = cam.id
+    //                         WHERE p.id = :programa_id";
+    //             $stmt_programas = $db->prepare($query_programas);
+    //             $stmt_programas->bindParam(':programa_id', $programa_id);
+    //             $stmt_programas->execute();
+    //             $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
+    //             return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
+    //                 'programas' => $programas
+    //             ]);
+    //         }else{
+    //             $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
+    //                         FROM programa p 
+    //                         JOIN nivel n ON p.id_nivel = n.id 
+    //                         JOIN campus cam ON p.id_campus = cam.id";
+    //             $stmt_programas = $db->prepare($query_programas);
+    //             $stmt_programas->execute();
+    //             $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
 
-                return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
-                    'programas' => $programas
-                ]);
-            }
-        }catch(Exception $e){
-            error_log("Error en getProgramasDisponibles: " . $e->getMessage());
-            return $this->errorResponse($response, 'Error interno del servidor', 500);
-        }finally{
-            if($stmt_programas !== null){
-                $stmt_programas = null;
-            }
-            if($db !== null){
-                $db = null;
-            }
-        }
-    }
+    //             return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
+    //                 'programas' => $programas
+    //             ]);
+    //         }
+    //     }catch(Exception $e){
+    //         error_log("Error en getProgramasDisponibles: " . $e->getMessage());
+    //         return $this->errorResponse($response, 'Error interno del servidor', 500);
+    //     }finally{
+    //         if($stmt_programas !== null){
+    //             $stmt_programas = null;
+    //         }
+    //         if($db !== null){
+    //             $db = null;
+    //         }
+    //     }
+    // }
     /**
      * Crea un nuevo cuestionario
      * POST /api/crearCuestionario

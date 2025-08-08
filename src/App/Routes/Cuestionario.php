@@ -10,7 +10,7 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
     
     // Obtener programas disponibles para crear cuestionario
-    $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
+    // $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
     
     // Crear cuestionario
     $subgroup->post('/crear', 'App\Controllers\crearCuestionario_controller:crearCuestionario');

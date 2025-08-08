@@ -96,14 +96,54 @@ La mayoría de endpoints requieren autenticación mediante token JWT:
 Authorization: Bearer <token>
 ```
 
-### Endpoints Principales
+### Endpoints
 
-- `POST /login` - Autenticación de usuarios
-- `POST /cuestionario/crear` - Crear nuevo cuestionario
-- `GET /cuestionario/listar` - Listar cuestionarios
-- `POST /asignacion/crear` - Asignar cuestionario a estudiante
-- `POST /resolver/iniciar` - Iniciar resolución de cuestionario
-- `GET /resultado/obtener` - Obtener resultados de intentos
+#### Auth
+- `POST /auth` - Autenticación de usuarios
+- `GET /auth/verify` - Verificar token JWT
+- `POST /auth/refresh` - Refrescar token JWT
+- `GET /auth/me` - Obtener información del usuario autenticado
+- `POST /auth/logout` - Cerrar sesión
+- `POST /auth/register` - Registro de usuario
+
+#### Cuestionario
+- `GET /cuestionario` - Obtener cuestionarios creados por el usuario
+- `GET /cuestionario/abiertos` - Obtener cuestionarios abiertos con estado
+- `POST /cuestionario/crear` - Crear cuestionario
+- `POST /cuestionario/{id}/anexar-preguntas` - Anexar preguntas a cuestionario
+- `GET /cuestionario/{id}/preguntas-opciones` - Obtener preguntas y opciones de un cuestionario
+- `POST /cuestionario/{id}/guardar-intento` - Guardar intento de resolver cuestionario
+
+#### Asignación
+- `POST /asignacion/crear` - Crear asignación
+- `GET /asignacion/obtener/{docente_id}` - Obtener asignaciones
+- `DELETE /asignacion/eliminar/{id_asignacion}` - Eliminar asignación
+- `GET /asignacion/aperturas` - Obtener aperturas con asignaciones
+
+#### Estudiante
+- `GET /estudiante` - Obtener estudiantes de un programa
+- `POST /estudiante/agregar` - Agregar estudiante
+- `PUT /estudiante/deshabilitar` - Deshabilitar estudiante
+- `PUT /estudiante/habilitar` - Habilitar estudiante
+
+#### Periodo
+- `GET /periodo` - Listar periodos activos
+- `GET /periodo/inactive` - Listar periodos inactivos
+- `POST /periodo/create` - Crear nuevo periodo
+- `GET /periodo/{id}` - Obtener periodo específico por ID
+- `DELETE /periodo/{id}` - Desactivar periodo
+- `POST /periodo/{id}/activate` - Reactivar periodo
+
+#### Aperturas
+- `GET /aperturas/cuestionarios-disponibles` - Obtener cuestionarios disponibles para apertura
+- `GET /aperturas/periodos-activos` - Obtener periodos activos para asignar
+- `GET /aperturas` - Obtener aperturas activas del usuario
+- `POST /aperturas/crear` - Crear nueva apertura
+- `DELETE /aperturas/{id}` - Desactivar apertura
+
+#### Programas
+- `GET /programas` - Obtener programas
+- `GET /programas/{id}` - Obtener programa específico por ID
 
 ## Base de Datos
 
