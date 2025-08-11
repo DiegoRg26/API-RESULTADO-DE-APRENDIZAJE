@@ -103,7 +103,7 @@ Authorization: Bearer <token>
 - `GET /auth/verify` - Verificar token JWT
 - `POST /auth/refresh` - Refrescar token JWT
 - `GET /auth/me` - Obtener información del usuario autenticado
-- `POST /auth/logout` - Cerrar sesión
+- `POST /auth/logout` - Cerrar sesión --> *No utilizado*
 - `POST /auth/register` - Registro de usuario
 
 #### Cuestionario
@@ -144,6 +144,11 @@ Authorization: Bearer <token>
 #### Programas
 - `GET /programas` - Obtener programas
 - `GET /programas/{id}` - Obtener programa específico por ID
+
+#### Seguimiento
+- `GET /seguimiento/info/{id}` - Obtener información de un cuestionario
+- `GET /seguimiento/estudiantes/{id}` - Obtener estudiantes de un cuestionario
+- `GET /seguimiento/detalle` - Obtener detalle de un cuestionario
 
 ## Base de Datos
 

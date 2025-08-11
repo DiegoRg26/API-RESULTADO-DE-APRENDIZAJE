@@ -21,63 +21,6 @@ class crearCuestionario_controller extends BaseController{
 	}
 
     /**
-	 * Obtiene los programas disponibles para el docente
-	 * GET /api/crearCuestionario/programas-disponibles
-	 * 
-	 * @param Request $request
-	 * @param Response $response
-	 * @param array $args
-	 * @return Response
-	 */
-    // public function getProgramasDisponibles(Request $request, Response $response, array $args): Response{
-    //     $stmt_programas = null;
-    //     $db = null;
-    //     try{
-    //         $inputData = $this->getJsonInput($request);
-    //         $db = $this->container->get('db');
-    //         if(!$inputData){
-    //             return $this->errorResponse($response, 'Datos JSON inválidos', 400);
-    //         }
-    //         if(isset($inputData['programa_id'])){
-    //             $programa_id = $this->sanitizeInput($inputData['programa_id']);
-    //             $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
-    //                         FROM programa p 
-    //                         JOIN nivel n ON p.id_nivel = n.id 
-    //                         JOIN campus cam ON p.id_campus = cam.id
-    //                         WHERE p.id = :programa_id";
-    //             $stmt_programas = $db->prepare($query_programas);
-    //             $stmt_programas->bindParam(':programa_id', $programa_id);
-    //             $stmt_programas->execute();
-    //             $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
-    //             return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
-    //                 'programas' => $programas
-    //             ]);
-    //         }else{
-    //             $query_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, n.puntaje_maximo as nivel_puntaje_maximo, cam.nombre as campus_nombre 
-    //                         FROM programa p 
-    //                         JOIN nivel n ON p.id_nivel = n.id 
-    //                         JOIN campus cam ON p.id_campus = cam.id";
-    //             $stmt_programas = $db->prepare($query_programas);
-    //             $stmt_programas->execute();
-    //             $programas = $stmt_programas->fetchAll(PDO::FETCH_ASSOC);
-
-    //             return $this->successResponse($response, 'Programas disponibles obtenidos exitosamente', [
-    //                 'programas' => $programas
-    //             ]);
-    //         }
-    //     }catch(Exception $e){
-    //         error_log("Error en getProgramasDisponibles: " . $e->getMessage());
-    //         return $this->errorResponse($response, 'Error interno del servidor', 500);
-    //     }finally{
-    //         if($stmt_programas !== null){
-    //             $stmt_programas = null;
-    //         }
-    //         if($db !== null){
-    //             $db = null;
-    //         }
-    //     }
-    // }
-    /**
      * Crea un nuevo cuestionario
      * POST /api/crearCuestionario
      * 
@@ -174,6 +117,7 @@ class crearCuestionario_controller extends BaseController{
             foreach($preguntas as $index => $pregunta_data){
                 if(!empty($pregunta_data['texto_pregunta'])){
                     $peso_pregunta = isset($pregunta_data['peso']) ? floatval($pregunta_data['peso']) : 1.00;
+                    $orientacion_pregunta = isset($pregunta_data['orientacion']) ? $pregunta_data['orientacion'] : 1;
 
                     //Procesar imagen de la pregunta
 
@@ -190,8 +134,8 @@ class crearCuestionario_controller extends BaseController{
                             $nombre_imagen_pregunta = $file_name;
                         }     
                     }
-                    $query_insert_pregunta = "INSERT INTO preguntas (id_cuestionario, texto_pregunta, orden_pregunta, peso_pregunta, imagen_pregunta, nombre_imagen_pregunta) 
-                                                VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta)";
+                    $query_insert_pregunta = "INSERT INTO preguntas (id_cuestionario, texto_pregunta, orden_pregunta, peso_pregunta, imagen_pregunta, nombre_imagen_pregunta, orientacion) 
+                                                VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta :orientacion)";
                     $stmt_insert_pregunta = $db->prepare($query_insert_pregunta);
                     $stmt_insert_pregunta->bindParam(':id_cuestionario', $cuestionario_id);
                     $stmt_insert_pregunta->bindParam(':texto_pregunta', $pregunta_data['texto_pregunta']);
@@ -199,6 +143,7 @@ class crearCuestionario_controller extends BaseController{
                     $stmt_insert_pregunta->bindParam(':peso_pregunta', $peso_pregunta);
                     $stmt_insert_pregunta->bindParam(':imagen_pregunta', $imagen_pregunta, PDO::PARAM_LOB);
                     $stmt_insert_pregunta->bindParam(':nombre_imagen_pregunta', $nombre_imagen_pregunta);
+                    $stmt_insert_pregunta->bindParam(':orientacion', $orientacion_pregunta);
                     if(!$stmt_insert_pregunta->execute()){
                         $db->rollBack();
                         return $this->errorResponse($response, 'Error al insertar la pregunta', 500);

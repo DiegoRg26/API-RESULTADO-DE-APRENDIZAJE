@@ -29,18 +29,18 @@ class registro_controller extends BaseController{
             $identificacion = $this->sanitizeInput($inputData['identificacion']);
             $password = $this->sanitizeInput($inputData['password']);
             $confirmar_password = $this->sanitizeInput($inputData['confirmar_password']);
-            $transversal = isset($inputData['transversal']) ? true : false;
-            $programa_id = null;
-            if(!$transversal){
+            $transversal = $inputData['transversal'];
+            if($transversal == true){
+                $programa_id = null;
+            }else{
                 $programa_id = $this->sanitizeInput($inputData['programa_id']);
             }
             if($password !== $confirmar_password){
                 return $this->errorResponse($response, 'Las contraseñas no coinciden', 400);
             } elseif(strlen($password) < 8){
                 return $this->errorResponse($response, 'La contraseña debe tener al menos 8 caracteres', 400);
-            } elseif(!$transversal && $programa_id === null){
-                return $this->errorResponse($response, 'Debes seleccionar un programa o marcar la opción Transversal', 400);
             }
+            
             $query_verificar = "SELECT id FROM docente WHERE identificacion = :identificacion";
             $stmt = $db->prepare($query_verificar);
             $stmt->bindParam(':identificacion', $identificacion);
