@@ -43,4 +43,6 @@ $app->group('/api', function(RouteCollectorProxy $group){
     @include __DIR__ . '/Routes/Estudiantes.php';
     //==============================[Rutas de Seguimiento]==========================
     @include __DIR__ . '/Routes/Seguimiento.php';
+    //==============================[Rutas de Ver]==========================
+    @include __DIR__ . '/Routes/Ver.php';
 });

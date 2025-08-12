@@ -210,4 +210,37 @@ class estudiante_controller extends BaseController{
             }
         }
     }
+
+    public function getEstInfo(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt = null;
+        try{
+            $estudiante_id = $args['id'];
+            if($estudiante_id <= 0){return $this->errorResponse($response, 'Estudiante no encontrado', 404);}
+            $db = $this->container->get('db');
+            $sql_estudiante = "SELECT 
+                                e.id,
+                                e.nombre,
+                                e.email,
+                                e.identificacion,
+                                p.nombre as programa_nombre
+                            FROM 
+                                estudiante e
+                            JOIN 
+                                programa p ON e.id_programa = p.id
+                            WHERE 
+                                e.id = :estudiante_id";
+            $stmt = $db->prepare($sql_estudiante);
+            $stmt -> bindParam(':estudiante_id', $estudiante_id);
+            $stmt -> execute();
+            $estudiante = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$estudiante){return $this->errorResponse($response, 'Estudiante no encontrado', 404);}
+            return $this->successResponse($response, 'Informacion del estudiante', $estudiante);
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al obtener la informacion del estudiante: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){$stmt = null;}
+            if($db !== null){$db = null;}
+        }
+    }
 }

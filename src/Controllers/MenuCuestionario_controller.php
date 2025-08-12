@@ -183,4 +183,51 @@ class MenuCuestionario_controller extends BaseController
 			return 'Cerrado';
 		}
 	}
+
+	public function getCuestInfo(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt = null;
+        try{
+            $cuest_id = $args['id'];
+            if($cuest_id <= 0){return $this->errorResponse($response, 'Cuestionario no valido', 404);}
+            $db = $this->container->get('db');
+            $user_id = $this->getUserIdFromToken($request);
+            $sql_cuest = "SELECT 
+                            c.id, 
+                            c.titulo, 
+                            c.descripcion, 
+                            d.nombre as creador_nombre,
+                            p.nombre as programa_nombre,
+                            n.nombre as nivel_nombre,
+                            cam.nombre as campus_nombre,
+                            rcp.id as relacion_id
+                        FROM 
+                            relacion_cuestionario_programa rcp
+                        JOIN 
+                            cuestionario c ON rcp.id_cuestionario = c.id
+                        JOIN 
+                            docente d ON rcp.id_docente = d.id
+                        JOIN 
+                            programa p ON rcp.id_programa = p.id
+                        JOIN 
+                            nivel n ON p.id_nivel = n.id
+                        JOIN 
+                            campus cam ON p.id_campus = cam.id
+                        WHERE 
+                            c.id = :cuestionario_id
+                            and rcp.id_docente = :usuario_id";
+            $stmt = $db->prepare($sql_cuest);
+            $stmt->bindParam(':cuestionario_id', $cuest_id, PDO::PARAM_INT);
+            $stmt->bindParam(':usuario_id', $user_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $cuestionario = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$cuestionario){return $this->errorResponse($response, 'Cuestionario no encontrado', 404);}
+            return $this->successResponse($response, 'Cuestionario obtenido exitosamente', $cuestionario);
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al obtener el cuestionario: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){$stmt = null;}
+            if($db !== null){$db = null;}
+        }
+    }
 }

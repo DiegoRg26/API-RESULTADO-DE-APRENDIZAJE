@@ -479,4 +479,51 @@ class apertura_controller extends BaseController
 			return 'Cerrado';
 		}
 	}
+
+	public function apertInfo(Request $request, Response $response, array $args){
+		$db = null;
+		$stmt = null;
+		try{
+			$apertura_id = $args["id"];
+			if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
+			$docente_id = $this->getUserIdFromToken($request);
+			if(!$docente_id){return $this->errorResponse($response, 'Token inválido o no proporcionado', 401);}
+			$db = $this->container->get('db');
+			$sql_apertura = "SELECT 
+								a.id as apertura_id,
+								c.id as cuestionario_id,
+								c.titulo,
+								c.descripcion,
+								p.nombre as programa_nombre,
+								per.nombre as periodo_nombre,
+								per.fecha_inicio,
+								per.fecha_fin,
+								a.activo as apertura_activa
+							FROM 
+								apertura a
+							JOIN 
+								relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+							JOIN 
+								cuestionario c ON rcp.id_cuestionario = c.id
+							JOIN 
+								programa p ON rcp.id_programa = p.id
+							JOIN 
+								periodo per ON a.id_periodo = per.id
+							WHERE 
+								a.id = :apertura_id 
+								AND rcp.id_docente = :docente_id";
+			$stmt = $db->prepare($sql_apertura);
+			$stmt->bindParam("apertura_id", $apertura_id);
+			$stmt->bindParam("docente_id", $docente_id);
+			$stmt->execute();
+			$aperturaSelec = $stmt->fetch(PDO::FETCH_ASSOC);
+			if(!$aperturaSelec){return $this->errorResponse($response, 'No tiene permisos para ver esta apertura o no existe', 403);}
+			return $this->successResponse($response, 'Apertura obtenida exitosamente', $aperturaSelec);
+		}catch(Exception $e){
+			return $this->errorResponse($response, 'Error interno del servidor', 500);
+		}finally{
+			if($stmt !== null){$stmt = null;}
+			if($db !== null){$db = null;}
+		}
+	}
 }

@@ -9,6 +9,9 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     // Obtener cuestionarios abiertos con estado
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
     
+    //Obtener informacion de un cuestionario
+    $subgroup->get('/{id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');
+
     // Obtener programas disponibles para crear cuestionario
     // $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
     
@@ -23,5 +26,4 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     
     // Guardar intento de resolver cuestionario
     $subgroup->post('/{id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
-    
 });

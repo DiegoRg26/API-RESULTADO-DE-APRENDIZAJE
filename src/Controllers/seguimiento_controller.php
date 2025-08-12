@@ -189,4 +189,50 @@ class seguimiento_controller extends BaseController{
             if($db !== null){$db !== null;}
         }
     }
+
+    public function getAllDocQuiz(Request $request, Response $response, array $args){
+        $db = null;
+        $stmt = null;
+        try{
+            $db = $this->container->get('db');
+            $docente_id = $this->getUserIdFromToken($request);
+            $sql_allQuiz = "SELECT 
+                                c.id as cuestionario_id,
+                                c.titulo,
+                                c.descripcion,
+                                p.nombre as programa_nombre,
+                                a.id as apertura_id,
+                                per.nombre as periodo_nombre,
+                                a.activo as apertura_activa,
+                                COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_respondieron
+                            FROM 
+                                cuestionario c
+                            JOIN 
+                                relacion_cuestionario_programa rcp ON c.id = rcp.id_cuestionario
+                            JOIN 
+                                programa p ON rcp.id_programa = p.id
+                            JOIN 
+                                apertura a ON rcp.id = a.id_relacion_cuestionario_programa
+                            JOIN 
+                                periodo per ON a.id_periodo = per.id
+                            LEFT JOIN 
+                                intento_cuestionario ic ON a.id = ic.id_apertura AND ic.completado = 1
+                            WHERE 
+                                rcp.id_docente = :docente_id
+                            GROUP BY 
+                                c.id, c.titulo, c.descripcion, p.nombre, a.id, per.nombre, a.activo
+                            ORDER BY 
+                                a.activo DESC, per.fecha_inicio DESC, c.titulo";
+            $stmt = $db->prepare($sql_allQuiz);
+            $stmt->bindParam(':docente_id', $docente_id);
+            $stmt->execute();
+            $cuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(!$cuestionarios){return $this->errorResponse($response, 'No se encontraron cuestionarios',500);}
+            return $this->successResponse($response, 'Cuestionarios obtenidos exitosamente', $cuestionarios);
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al obtener los cuestionarios',500);
+        }
+    }
+
+    
 }
