@@ -135,7 +135,7 @@ class crearCuestionario_controller extends BaseController{
                         }     
                     }
                     $query_insert_pregunta = "INSERT INTO preguntas (id_cuestionario, texto_pregunta, orden_pregunta, peso_pregunta, imagen_pregunta, nombre_imagen_pregunta, orientacion) 
-                                                VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta :orientacion)";
+                                            VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta,° :orientacion)";
                     $stmt_insert_pregunta = $db->prepare($query_insert_pregunta);
                     $stmt_insert_pregunta->bindParam(':id_cuestionario', $cuestionario_id);
                     $stmt_insert_pregunta->bindParam(':texto_pregunta', $pregunta_data['texto_pregunta']);
