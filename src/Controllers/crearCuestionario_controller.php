@@ -110,9 +110,28 @@ class crearCuestionario_controller extends BaseController{
         try{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
-            if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            if(!$inputData){
+                return $this->errorResponse($response, 'Datos JSON inválidos', 400);
+            }
+            
+            // Validar que el cuestionario existe
             $cuestionario_id = $args['id'];
+            $stmt_check = $db->prepare("SELECT id FROM cuestionario WHERE id = ?");
+            $stmt_check->execute([$cuestionario_id]);
+            if(!$stmt_check->fetch()){
+                return $this->errorResponse($response, 'El cuestionario no existe', 404);
+            }
+            
+            // Validar estructura de datos
+            if(!isset($inputData['preguntas']) || !is_array($inputData['preguntas'])){
+                return $this->errorResponse($response, 'Se requieren las preguntas en formato array', 400);
+            }
+            
             $preguntas = $inputData['preguntas'];
+            if(empty($preguntas)){
+                return $this->errorResponse($response, 'Debe enviar al menos una pregunta', 400);
+            }
+            
             $db->beginTransaction();
             foreach($preguntas as $index => $pregunta_data){
                 if(!empty($pregunta_data['texto_pregunta'])){
@@ -120,10 +139,10 @@ class crearCuestionario_controller extends BaseController{
                     $orientacion_pregunta = isset($pregunta_data['orientacion']) ? $pregunta_data['orientacion'] : 1;
 
                     //Procesar imagen de la pregunta
-
                     $imagen_pregunta = null;
                     $nombre_imagen_pregunta = null;
 
+                    // 1) Multipart (si vino archivo)
                     if(isset($_FILES['preguntas']['name'][$index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['imagen'])){
                         $file_name = $_FILES['preguntas']['name'][$index]['imagen'];
                         $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['imagen'];
@@ -134,8 +153,22 @@ class crearCuestionario_controller extends BaseController{
                             $nombre_imagen_pregunta = $file_name;
                         }     
                     }
+                    // 2) Fallback Base64 (si vino en JSON)
+                    if($imagen_pregunta === null && !empty($pregunta_data['imagen_base64'])){
+                        $b64 = $pregunta_data['imagen_base64'];
+                        if(strpos($b64, 'base64,') !== false){
+                            $parts = explode('base64,', $b64, 2);
+                            $b64 = $parts[1];
+                        }
+                        $raw = base64_decode($b64);
+                        if($raw !== false){
+                            $imagen_pregunta = $raw;
+                            $nombre_imagen_pregunta = isset($pregunta_data['nombre_imagen_pregunta']) ? $pregunta_data['nombre_imagen_pregunta'] : ('pregunta_'.$index.'.jpg');
+                        }
+                    }
+
                     $query_insert_pregunta = "INSERT INTO preguntas (id_cuestionario, texto_pregunta, orden_pregunta, peso_pregunta, imagen_pregunta, nombre_imagen_pregunta, orientacion) 
-                                            VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta,° :orientacion)";
+                                            VALUES (:id_cuestionario, :texto_pregunta, :orden_pregunta, :peso_pregunta, :imagen_pregunta, :nombre_imagen_pregunta, :orientacion)";
                     $stmt_insert_pregunta = $db->prepare($query_insert_pregunta);
                     $stmt_insert_pregunta->bindParam(':id_cuestionario', $cuestionario_id);
                     $stmt_insert_pregunta->bindParam(':texto_pregunta', $pregunta_data['texto_pregunta']);
@@ -159,6 +192,8 @@ class crearCuestionario_controller extends BaseController{
                                 //procesar imagen de la opcion
                                 $imagen_opcion = null;
                                 $nombre_imagen_opcion = null;
+
+                                // 1) Multipart (si vino archivo)
                                 if(isset($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'])){
                                     $file_name = $_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'];
                                     $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['opciones'][$opcion_index]['imagen'];
@@ -169,6 +204,20 @@ class crearCuestionario_controller extends BaseController{
                                         $nombre_imagen_opcion = $file_name;
                                     }
                                 }
+                                // 2) Fallback Base64 (si vino en JSON)
+                                if($imagen_opcion === null && !empty($opcion_data['imagen_base64'])){
+                                    $b64o = $opcion_data['imagen_base64'];
+                                    if(strpos($b64o, 'base64,') !== false){
+                                        $parts = explode('base64,', $b64o, 2);
+                                        $b64o = $parts[1];
+                                    }
+                                    $rawo = base64_decode($b64o);
+                                    if($rawo !== false){
+                                        $imagen_opcion = $rawo;
+                                        $nombre_imagen_opcion = isset($opcion_data['nombre_imagen_opcion']) ? $opcion_data['nombre_imagen_opcion'] : ('opcion_'.$opcion_index.'.jpg');
+                                    }
+                                }
+
                                 $query_insert_opcion = "INSERT INTO opcion_respuesta (id_pregunta, texto_opcion, opcion_correcta, orden, imagen_opcion, nombre_imagen_opcion) 
                                             VALUES (:id_pregunta, :texto_opcion, :opcion_correcta, :orden, :imagen_opcion, :nombre_imagen_opcion)";
                                 $stmt_insert_opcion = $db->prepare($query_insert_opcion);
@@ -193,6 +242,9 @@ class crearCuestionario_controller extends BaseController{
             ]);
         }catch(Exception $e){
             error_log("Error en anexarPreguntas: " . $e->getMessage());
+            if($db !== null && $db->inTransaction()){
+                $db->rollBack();
+            }
             $error_message = $e->getMessage();
             return $this->errorResponse($response, $error_message, 500);
         }finally{
