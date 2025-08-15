@@ -25,9 +25,6 @@ class login_controller extends BaseController
     
     public function __construct(ContainerInterface $c)
     {
-        // $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-        // $dotenv->load();
-
         parent::__construct($c);
         $this->jwtSecret = $_ENV['JWT_SECRET'];
         $this->jwtExpiration = 3600; // 1 hora en segundos

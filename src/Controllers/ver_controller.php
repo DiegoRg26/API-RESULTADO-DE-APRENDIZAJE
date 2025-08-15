@@ -143,21 +143,25 @@ class ver_controller extends BaseController{
                 $pregunta_id = $row['pregunta_id'];
 
                 if(!isset($preguntas_con_opciones[$pregunta_id])){
+                    $_FILES['imagen_pregunta'] = $row['imagen_pregunta'];
+                    $_FILES['imagen_opcion'] = $row['imagen_opcion'];
+                    $imagen_pregunta = $_FILES['imagen_pregunta'];
                     $preguntas_con_opciones[$pregunta_id] = [
                         'pregunta_id' => $row['pregunta_id'],
                         'texto_pregunta' => $row['texto_pregunta'],
                         'orden_pregunta' => $row['orden_pregunta'],
                         'peso_pregunta' => $row['peso_pregunta'],
-                        'imagen_pregunta' => (!empty($row['imagen_pregunta']) ? base64_encode($row['imagen_pregunta']) : null),
+                        'imagen_pregunta' => (!empty($row['imagen_pregunta']) ? base64_encode($imagen_pregunta) : null),
                         'opciones' => []
                     ];
                 }
 
                 if($row['opcion_id']){
+                    $imagen_opcion = $_FILES['imagen_opcion'];
                     $preguntas_con_opciones[$pregunta_id]['opciones'][] = [
                         'opcion_id' => $row['opcion_id'],
                         'texto_opcion' => $row['texto_opcion'],
-                        'imagen_opcion' => (!empty($row['imagen_opcion']) ? base64_encode($row['imagen_opcion']) : null),
+                        'imagen_opcion' => (!empty($row['imagen_opcion']) ? base64_encode($imagen_opcion) : null),
                         'es_correcta' => $row['opcion_correcta'],
                         'orden_opcion' => $row['orden']
                     ];
