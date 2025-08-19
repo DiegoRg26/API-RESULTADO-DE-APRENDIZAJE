@@ -24,5 +24,5 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     
     $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken');
     
-    $subgroup->delete('/cleanSesion', 'App\Controllers\estudiantes_login_controller:cleanExpiredSessions');
+    // $subgroup->delete('/cleansession', 'App\Controllers\estudiantes_login_controller:cleanExpiredSessions');
 });
