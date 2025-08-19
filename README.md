@@ -113,6 +113,7 @@ Authorization: Bearer <token>
 - `POST /cuestionario/{id}/anexar-preguntas` - Anexar preguntas a cuestionario
 - `GET /cuestionario/{id}/preguntas-opciones` - Obtener preguntas y opciones de un cuestionario
 - `POST /cuestionario/{id}/guardar-intento` - Guardar intento de resolver cuestionario
+- `GET /cuestionario/{id}` - Obtener cuestionario específico por ID
 
 #### Asignación
 - `POST /asignacion/crear` - Crear asignación
@@ -122,9 +123,13 @@ Authorization: Bearer <token>
 
 #### Estudiante
 - `GET /estudiante` - Obtener estudiantes de un programa
+- `GET /estudiante/{id}` - Obtener información de un estudiante
 - `POST /estudiante/agregar` - Agregar estudiante
 - `PUT /estudiante/deshabilitar` - Deshabilitar estudiante
 - `PUT /estudiante/habilitar` - Habilitar estudiante
+- `POST /estudiante/login` - Login de estudiante
+- `POST /estudiante/logout` - Logout de estudiante
+- `POST /estudiante/verify` - Verificar token de estudiante
 
 #### Periodo
 - `GET /periodo` - Listar periodos activos
@@ -132,7 +137,7 @@ Authorization: Bearer <token>
 - `POST /periodo/create` - Crear nuevo periodo
 - `GET /periodo/{id}` - Obtener periodo específico por ID
 - `DELETE /periodo/{id}` - Desactivar periodo
-- `POST /periodo/{id}/activate` - Reactivar periodo
+- `PUT /periodo/{id}/activate` - Reactivar periodo
 
 #### Aperturas
 - `GET /aperturas/cuestionarios-disponibles` - Obtener cuestionarios disponibles para apertura
@@ -149,6 +154,12 @@ Authorization: Bearer <token>
 - `GET /seguimiento/info/{id}` - Obtener información de un cuestionario
 - `GET /seguimiento/estudiantes/{id}` - Obtener estudiantes de un cuestionario
 - `GET /seguimiento/detalle` - Obtener detalle de un cuestionario
+- `GET /seguimiento/allquiz` - Obtener todos los cuestionarios del docente con detalles
+
+#### Ver
+- `GET /ver/{id}` - Obtener información de un cuestionario (detalles y preguntas)
+- `POST /ver/intento` - Obtener el intento más reciente de un estudiante para un cuestionario
+- `GET /ver/respuestas/{id}` - Obtener respuestas de un estudiante para un cuestionario
 
 ## Base de Datos
 

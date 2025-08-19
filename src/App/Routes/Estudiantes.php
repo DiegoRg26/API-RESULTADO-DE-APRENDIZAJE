@@ -17,5 +17,11 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     
     // Habilitar estudiante
     $subgroup->put('/habilitar', 'App\Controllers\estudiante_controller:habilitarEstudiante');
+
+    $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
+    
+    $subgroup->post('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
+    
+    $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken');
     
 });

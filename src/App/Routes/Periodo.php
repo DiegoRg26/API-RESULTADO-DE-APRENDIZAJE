@@ -22,6 +22,6 @@ $group->group('/periodo', function(RouteCollectorProxy $subgroup){
     $subgroup->delete('/{id}', 'App\Controllers\periodo_controller:deactivate');
     
     // Reactivar periodo
-    $subgroup->post('/{id}/activate', 'App\Controllers\periodo_controller:activate');
+    $subgroup->put('/{id}/activate', 'App\Controllers\periodo_controller:activate');
     
 });
