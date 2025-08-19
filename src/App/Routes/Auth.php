@@ -22,4 +22,5 @@ $subgroup->post('/logout', 'App\Controllers\login_controller:logout');
 // Registro de usuario ✅
 $subgroup->post('/register', 'App\Controllers\registro_controller:registrar');
 
+$subgroup->get('/register/programas', 'App\Controllers\registro_controller:getProgramaUnTokenRegistro');
 });

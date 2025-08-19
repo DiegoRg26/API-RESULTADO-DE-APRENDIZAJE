@@ -218,7 +218,7 @@ class BaseController{
                 $db = null;
             }
         }
-    }
+    }    
 
     public function getProgramaById(Request $request, Response $response, array $args): Response{
         $db = null;

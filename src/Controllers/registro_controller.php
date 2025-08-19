@@ -73,4 +73,32 @@ class registro_controller extends BaseController{
             if($stmt_insertar !== null){$stmt_insertar = null;}
         }
     }
+
+    public function getProgramaUnTokenRegistro(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt = null;
+        try{
+            $db = $this->container->get('db');
+            $sql_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
+                                        FROM programa p 
+                                        JOIN nivel n ON p.id_nivel = n.id 
+                                        JOIN campus c ON p.id_campus = c.id 
+                                        ORDER BY p.nombre";
+            $stmt = $db->prepare($sql_programas);
+            $stmt->execute();
+            $programas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $this->successResponse($response, "Programas obtenidos", [
+                'programas' => $programas
+            ]);
+        }catch(Exception $e){
+            return $this->errorResponse($response, "Error al obtener los programas: " . $e->getMessage(), 500);
+        }finally{
+            if($stmt !== null){
+                $stmt = null;
+            }
+            if($db !== null){
+                $db = null;
+            }
+        }
+    }
 }
