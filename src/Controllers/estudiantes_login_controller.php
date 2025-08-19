@@ -499,8 +499,8 @@ class estudiantes_login_controller extends BaseController{
     {
         try {
             $query = "UPDATE sesion_estudiante 
-                     SET activa = 0 
-                     WHERE activa = 1 AND fecha_ultima_actividad < DATE_SUB(NOW(), INTERVAL 8 HOUR)";
+                        SET activa = 0 
+                        WHERE activa = 1 AND fecha_ultima_actividad < DATE_SUB(NOW(), INTERVAL 8 HOUR)";
             
             $stmt = $db->prepare($query);
             $stmt->execute();
