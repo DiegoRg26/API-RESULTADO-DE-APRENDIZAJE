@@ -243,4 +243,257 @@ class estudiante_controller extends BaseController{
             if($db !== null){$db = null;}
         }
     }
+
+    public function getCuestionariosAsignados(Request $request, Response $response, array $args): Response {
+        $db = null;
+        $stmt = null;
+        try {
+            $db = $this->container->get('db');
+            
+            // Obtener el ID del estudiante autenticado
+            $estudiante_id = $this->getUserIdFromToken($request);
+
+            if (!$estudiante_id) {
+                return $this->errorResponse($response, 'Usuario no autenticado', 401);
+            }
+    
+            $sql = "SELECT 
+                        c.id AS cuestionario_id,
+                        c.titulo,
+                        c.descripcion,
+                        c.tiempo_limite,
+                        p.nombre AS periodo,
+                        a.id AS asignacion_id
+                    FROM asignacion a
+                    INNER JOIN apertura ap ON a.id_apertura = ap.id
+                    INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                    INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                    INNER JOIN periodo p ON ap.id_periodo = p.id
+                    WHERE a.id_estudiante = :estudiante_id
+                    AND ap.activo = 1
+                    AND p.fecha_fin >= CURDATE()";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                $cuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (count($cuestionarios) > 0) {
+                    return $this->successResponse($response, 'Cuestionarios obtenidos correctamente', [
+                        'cuestionarios' => $cuestionarios,
+                        'total' => count($cuestionarios)
+                    ]);
+                } else {
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios asignados', 404);
+                }
+            } else {
+                return $this->errorResponse($response, 'Error al obtener los cuestionarios', 500);
+            }
+        } catch (Exception $e) {
+            return $this->errorResponse($response, 'Error al obtener los cuestionarios: ' . $e->getMessage(), 500);
+        } finally {
+            if ($stmt !== null) {
+                $stmt = null;
+            }
+            if ($db !== null) {
+                $db = null;
+            }
+        }
+    }
+
+    public function getCuestionariosCompletados(Request $request, Response $response, array $args): Response {
+        $db = null;
+        $stmt = null;
+        try {
+            $db = $this->container->get('db');
+            
+            // Obtener el ID del estudiante autenticado
+            $estudiante_id = $this->getUserIdFromToken($request);
+
+            if (!$estudiante_id) {
+                return $this->errorResponse($response, 'Usuario no autenticado', 401);
+            }
+    
+            $sql = "SELECT 
+                        c.id AS cuestionario_id,
+                        c.titulo,
+                        c.descripcion,
+                        c.tiempo_limite,
+                        p.nombre AS periodo,
+                        ic.fecha_inicio,
+                        ic.fecha_fin,
+                        ic.puntaje_total,
+                        ic.completado,
+                        a.id AS asignacion_id,
+                        ap.id AS apertura_id
+                    FROM intento_cuestionario ic
+                    INNER JOIN asignacion a ON ic.id_estudiante = a.id_estudiante AND ic.id_apertura = a.id_apertura
+                    INNER JOIN apertura ap ON a.id_apertura = ap.id
+                    INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                    INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                    INNER JOIN periodo p ON ap.id_periodo = p.id
+                    WHERE ic.id_estudiante = :estudiante_id
+                    AND ic.completado = 1
+                    ORDER BY ic.fecha_fin DESC";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                $cuestionarios_completados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (count($cuestionarios_completados) > 0) {
+                    return $this->successResponse($response, 'Cuestionarios completados obtenidos correctamente', [
+                        'cuestionarios_completados' => $cuestionarios_completados,
+                        'total' => count($cuestionarios_completados)
+                    ]);
+                } else {
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios completados', 404);
+                }
+            } else {
+                return $this->errorResponse($response, 'Error al obtener los cuestionarios completados', 500);
+            }
+        } catch (Exception $e) {
+            return $this->errorResponse($response, 'Error al obtener los cuestionarios completados: ' . $e->getMessage(), 500);
+        } finally {
+            if ($stmt !== null) {
+                $stmt = null;
+            }
+            if ($db !== null) {
+                $db = null;
+            }
+        }
+    }
+
+    public function getCuestionariosProgramados(Request $request, Response $response, array $args): Response {
+        $db = null;
+        $stmt = null;
+        try {
+            $db = $this->container->get('db');
+            
+            // Obtener el ID del estudiante autenticado
+            $estudiante_id = $this->getUserIdFromToken($request);
+
+            if (!$estudiante_id) {
+                return $this->errorResponse($response, 'Usuario no autenticado', 401);
+            }
+    
+            $sql = "SELECT 
+                        c.id AS cuestionario_id,
+                        c.titulo,
+                        c.descripcion,
+                        c.tiempo_limite,
+                        p.nombre AS periodo,
+                        p.fecha_inicio,
+                        p.fecha_fin,
+                        a.id AS asignacion_id,
+                        ap.id AS apertura_id
+                    FROM asignacion a
+                    INNER JOIN apertura ap ON a.id_apertura = ap.id
+                    INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                    INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                    INNER JOIN periodo p ON ap.id_periodo = p.id
+                    WHERE a.id_estudiante = :estudiante_id
+                    AND ap.activo = 1
+                    AND p.fecha_inicio > CURDATE()
+                    ORDER BY p.fecha_inicio ASC";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                $cuestionarios_programados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (count($cuestionarios_programados) > 0) {
+                    return $this->successResponse($response, 'Cuestionarios programados obtenidos correctamente', [
+                        'cuestionarios_programados' => $cuestionarios_programados,
+                        'total' => count($cuestionarios_programados)
+                    ]);
+                } else {
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios programados', 404);
+                }
+            } else {
+                return $this->errorResponse($response, 'Error al obtener los cuestionarios programados', 500);
+            }
+        } catch (Exception $e) {
+            return $this->errorResponse($response, 'Error al obtener los cuestionarios programados: ' . $e->getMessage(), 500);
+        } finally {
+            if ($stmt !== null) {
+                $stmt = null;
+            }
+            if ($db !== null) {
+                $db = null;
+            }
+        }
+    }
+
+    public function getCuestionariosExpirados(Request $request, Response $response, array $args): Response {
+        $db = null;
+        $stmt = null;
+        try {
+            $db = $this->container->get('db');
+            
+            // Obtener el ID del estudiante autenticado
+            $estudiante_id = $this->getUserIdFromToken($request);
+
+            if (!$estudiante_id) {
+                return $this->errorResponse($response, 'Usuario no autenticado', 401);
+            }
+    
+            $sql = "SELECT 
+                        c.id AS cuestionario_id,
+                        c.titulo,
+                        c.descripcion,
+                        c.tiempo_limite,
+                        p.nombre AS periodo,
+                        p.fecha_inicio,
+                        p.fecha_fin,
+                        a.id AS asignacion_id,
+                        ap.id AS apertura_id
+                    FROM asignacion a
+                    INNER JOIN apertura ap ON a.id_apertura = ap.id
+                    INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                    INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                    INNER JOIN periodo p ON ap.id_periodo = p.id
+                    WHERE a.id_estudiante = :estudiante_id
+                    AND ap.activo = 1
+                    AND p.fecha_fin < CURDATE()
+                    AND NOT EXISTS (
+                        SELECT 1 FROM intento_cuestionario ic 
+                        WHERE ic.id_estudiante = :estudiante_id 
+                        AND ic.id_apertura = ap.id
+                    )
+                    ORDER BY p.fecha_fin DESC";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                $cuestionarios_expirados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (count($cuestionarios_expirados) > 0) {
+                    return $this->successResponse($response, 'Cuestionarios expirados obtenidos correctamente', [
+                        'cuestionarios_expirados' => $cuestionarios_expirados,
+                        'total' => count($cuestionarios_expirados)
+                    ]);
+                } else {
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios expirados', 404);
+                }
+            } else {
+                return $this->errorResponse($response, 'Error al obtener los cuestionarios expirados', 500);
+            }
+        } catch (Exception $e) {
+            return $this->errorResponse($response, 'Error al obtener los cuestionarios expirados: ' . $e->getMessage(), 500);
+        } finally {
+            if ($stmt !== null) {
+                $stmt = null;
+            }
+            if ($db !== null) {
+                $db = null;
+            }
+        }
+    }
+
+    
 }

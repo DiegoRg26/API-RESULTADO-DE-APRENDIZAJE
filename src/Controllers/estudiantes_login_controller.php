@@ -21,7 +21,7 @@ class estudiantes_login_controller extends BaseController{
         parent::__construct($c);
         $this->jwtSecret = $_ENV['JWT_SECRET'];
         $this->jwtExpiration = 3600; // 1 hora en segundos
-        $this->sessionExpiration = 8 * 3600; // 8 horas para estudiantes
+        $this->sessionExpiration = 3600; // 1 hora para estudiantes
     }
 
     /**
@@ -74,6 +74,15 @@ class estudiantes_login_controller extends BaseController{
             // Generar nuevo token JWT con JTI único
             $jwtId = $this->generateJwtId();
             $token = $this->generateStudentJwtToken($student, $jwtId);
+
+            $sql_delete_logs = "DELETE FROM sesion_estudiante 
+                                WHERE fecha_creacion < DATE_SUB(NOW(), INTERVAL 8 HOUR) AND id_estudiante = :estudiante_id";
+            $stmt = $db->prepare($sql_delete_logs);
+            $stmt->bindParam(':estudiante_id', $student['id']);
+            $stmt->execute();
+            if(!$stmt->execute()){
+                return $this->errorResponse($response, 'Error al eliminar sesiones anteriores', 500);
+            }
             
             // Crear nueva sesión
             $sessionResult = $this->createStudentSession($db, $student['id'], $jwtId, $clientInfo);
@@ -92,7 +101,7 @@ class estudiantes_login_controller extends BaseController{
             
         } catch (Exception $e) {
             error_log("Error en student authenticate: " . $e->getMessage());
-            return $this->errorResponse($response, 'Error interno del servidor', 500);
+            return $this->errorResponse($response, 'Error interno del servidor' . $e->getMessage(), 500);
         } finally {
             if ($db !== null) {
                 $db = null;
