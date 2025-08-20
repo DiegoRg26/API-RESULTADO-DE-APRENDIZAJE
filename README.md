@@ -57,21 +57,21 @@ public/
 ## Instalación
 
 1. Clonar el repositorio:
+
    ```bash
    git clone [URL_DEL_REPOSITORIO]
    ```
-
 2. Instalar dependencias:
+
    ```bash
    composer install
    ```
-
 3. Configurar variables de entorno:
+
    ```bash
    cp .env.dis .env
    # Editar .env con los valores correspondientes
    ```
-
 4. Configurar el servidor web para apuntar al directorio `public/`
 
 ## Configuración
@@ -99,67 +99,261 @@ Authorization: Bearer <token>
 ### Endpoints
 
 #### Auth
+
 - `POST /auth` - Autenticación de usuarios
+  - Body JSON: `{ "email": string, "password": string }`
+  
 - `GET /auth/verify` - Verificar token JWT
+  - Headers: `Authorization: Bearer <token>`
+
 - `POST /auth/refresh` - Refrescar token JWT
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /auth/me` - Obtener información del usuario autenticado
+  - Headers: `Authorization: Bearer <token>`
+
 - `POST /auth/logout` - Cerrar sesión --> *No utilizado*
+  - Sin parámetros
+
 - `POST /auth/register` - Registro de usuario
 
 #### Cuestionario
+
 - `GET /cuestionario` - Obtener cuestionarios creados por el usuario
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /cuestionario/abiertos` - Obtener cuestionarios abiertos con estado
+  - Headers: `Authorization: Bearer <token>`
+
 - `POST /cuestionario/crear` - Crear cuestionario
+  - Headers: `Authorization: Bearer <token>`
+  - Body JSON: `{ "titulo": string, "descripcion": string, "tiempo_limite": number, "programa_id": number }`
+  
 - `POST /cuestionario/{id}/anexar-preguntas` - Anexar preguntas a cuestionario
+  - Path: `id` (number)
+  - Body JSON (estructura):
+ 
+    ```json
+    {
+		"preguntas": [
+			{
+				"texto_pregunta": "¿Capital de Francia?",
+				"peso": 1,
+				"orientacion": 1,
+				"imagen_base64": "data:image/jpeg;base64,....",
+				"nombre_imagen_pregunta": "pregunta_1.jpg",
+				"correcta": 1,
+				"opciones": [
+					{ "texto": "Madrid" },
+					{ "texto": "París", "imagen_base64": "data:image/png;base64,....", "nombre_imagen_opcion": "op2.png" },
+					{ "texto": "Roma" }
+				]
+			}
+		]
+    }
+    ```
+  - Content-Type: `application/json`
+
 - `GET /cuestionario/{id}/preguntas-opciones` - Obtener preguntas y opciones de un cuestionario
+  - Path: `id` (number)
+
 - `POST /cuestionario/{id}/guardar-intento` - Guardar intento de resolver cuestionario
+  - Path: `id` (number)
+  - Body JSON: `{ "estudiante_id": number, "respuestas": [{ "pregunta_id": number, "opcion_id": number }], "tiempo_utilizado": number }`
+    - Nota: `estudiante_id` es temporal para testing; en producción se usará el token JWT
+
 - `GET /cuestionario/{id}` - Obtener cuestionario específico por ID
+  - Path: `id` (number)
+  - Headers: `Authorization: Bearer <token>`
 
 #### Asignación
+
 - `POST /asignacion/crear` - Crear asignación
+  - Headers: `Authorization: Bearer <token>`
+  - Body JSON:
+    ```json
+    {
+		"id_apertura": 123,
+		"id_estudiante": [1, 2, 3]
+    }
+    ```
+  - Notas: `id_apertura` numérico > 0. `id_estudiante` debe ser un array no vacío de IDs numéricos.
+
 - `GET /asignacion/obtener/{docente_id}` - Obtener asignaciones
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `docente_id` (number)
+
 - `DELETE /asignacion/eliminar/{id_asignacion}` - Eliminar asignación
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `id_asignacion` (number)
+
 - `GET /asignacion/aperturas` - Obtener aperturas con asignaciones
+  - Headers: `Authorization: Bearer <token>`
 
 #### Estudiante
+
 - `GET /estudiante` - Obtener estudiantes de un programa
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /estudiante/{id}` - Obtener información de un estudiante
+  - Path: `id` (number)
+
 - `POST /estudiante/agregar` - Agregar estudiante
+  - Headers: `Authorization: Bearer <token>`
+  - Body JSON:
+    ```json
+    {
+		"nombre": "Juan Pérez",
+		"email": "juan@example.com",
+		"identificacion": "123456789",
+		"programa_id": 10
+    }
+    ```
+  - Notas: Si el token contiene `programa_id`, no es necesario enviarlo en el body; de lo contrario es requerido.
+
 - `PUT /estudiante/deshabilitar` - Deshabilitar estudiante
+  - Body JSON:
+    ```json
+    {
+		"id": 25,
+		"identificacion": "123456789"
+    }
+    ```
+
 - `PUT /estudiante/habilitar` - Habilitar estudiante
+  - Body JSON:
+    ```json
+    {
+		"id": 25,
+		"identificacion": "123456789"
+    }
+    ```
+
 - `POST /estudiante/login` - Login de estudiante
+  - Body JSON:
+    ```json
+    {
+		"email": "estudiante@example.com",
+		"identificacion": "123456789"
+    }
+    ```
+
 - `POST /estudiante/logout` - Logout de estudiante
+  - Headers: `Authorization: Bearer <token>` (opcional)
+
 - `POST /estudiante/verify` - Verificar token de estudiante
+  - Headers: `Authorization: Bearer <token>`
+
+- `GET /estudiante/cuestionarios` - Obtener cuestionarios asignados al estudiante autenticado
+  - Headers: `Authorization: Bearer <token>`
+
+- `GET /estudiante/cuestionarios/completados` - Obtener cuestionarios completados por el estudiante
+  - Headers: `Authorization: Bearer <token>`
+
+- `GET /estudiante/cuestionarios/programados` - Obtener cuestionarios programados (aún no inician)
+  - Headers: `Authorization: Bearer <token>`
+
+- `GET /estudiante/cuestionarios/expirados` - Obtener cuestionarios expirados sin intentos registrados
+  - Headers: `Authorization: Bearer <token>`
 
 #### Periodo
+
 - `GET /periodo` - Listar periodos activos
+  - Headers: `Authorization: Bearer <token>` (según configuración de seguridad)
+
 - `GET /periodo/inactive` - Listar periodos inactivos
+  - Headers: `Authorization: Bearer <token>` (según configuración de seguridad)
+
 - `POST /periodo/create` - Crear nuevo periodo
+  - Headers: `Content-Type: application/json`
+  - Body JSON:
+    ```json
+	{
+		"nombre": "Periodo 2025-1",
+		"fecha_inicio": "2025-01-01",
+		"fecha_fin": "2025-06-30"
+	}
+    ```
+  - Notas: `fecha_inicio` y `fecha_fin` en formato `YYYY-MM-DD`. La fecha de inicio no puede ser mayor a la de fin.
+
 - `GET /periodo/{id}` - Obtener periodo específico por ID
+  - Path: `id` (number)
+
 - `DELETE /periodo/{id}` - Desactivar periodo
+  - Path: `id` (number)
+  - Notas: No permite desactivar si existen aperturas activas asociadas al periodo.
+
 - `PUT /periodo/{id}/activate` - Reactivar periodo
+  - Path: `id` (number)
 
 #### Aperturas
+
 - `GET /aperturas/cuestionarios-disponibles` - Obtener cuestionarios disponibles para apertura
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /aperturas/periodos-activos` - Obtener periodos activos para asignar
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /aperturas` - Obtener aperturas activas del usuario
+  - Headers: `Authorization: Bearer <token>`
+
 - `POST /aperturas/crear` - Crear nueva apertura
+  - Headers: `Authorization: Bearer <token>`
+  - Body JSON:
+    ```json
+	{
+		"cuestionario_id": 123,
+		"periodo_id": 45
+	}
+    ```
+  - Notas: `cuestionario_id` corresponde al ID de `relacion_cuestionario_programa` del docente. No se permite crear una apertura si ya existe una activa para ese cuestionario.
+
 - `DELETE /aperturas/{id}` - Desactivar apertura
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `id` (number)
 
 #### Programas
+
 - `GET /programas` - Obtener programas
+  - Headers: `Authorization: Bearer <token>`
+  - Notas: Si el token incluye `programa_id`, se retornará solo ese programa; de lo contrario, se listarán todos.
+
 - `GET /programas/{id}` - Obtener programa específico por ID
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `id` (number)
 
 #### Seguimiento
+
 - `GET /seguimiento/info/{id}` - Obtener información de un cuestionario
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `id` (number) - ID de apertura
+
 - `GET /seguimiento/estudiantes/{id}` - Obtener estudiantes de un cuestionario
+  - Path: `id` (number) - ID de apertura
+
 - `GET /seguimiento/detalle` - Obtener detalle de un cuestionario
+  - Headers: `Authorization: Bearer <token>`
+
 - `GET /seguimiento/allquiz` - Obtener todos los cuestionarios del docente con detalles
+  - Headers: `Authorization: Bearer <token>`
 
 #### Ver
+
 - `GET /ver/{id}` - Obtener información de un cuestionario (detalles y preguntas)
+  - Path: `id` (number) - ID del cuestionario
+
 - `POST /ver/intento` - Obtener el intento más reciente de un estudiante para un cuestionario
+  - Headers: `Content-Type: application/json`
+  - Body JSON:
+    ```json
+	{
+		"estudiante_id": 456,
+		"cuestionario_id": 123
+	}
+    ```
+
 - `GET /ver/respuestas/{id}` - Obtener respuestas de un estudiante para un cuestionario
+  - Path: `id` (number) - ID de intento
 
 ## Base de Datos
 

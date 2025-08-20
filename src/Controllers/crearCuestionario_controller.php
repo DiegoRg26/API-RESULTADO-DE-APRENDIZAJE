@@ -143,16 +143,16 @@ class crearCuestionario_controller extends BaseController{
                     $nombre_imagen_pregunta = null;
 
                     // 1) Multipart (si vino archivo)
-                    if(isset($_FILES['preguntas']['name'][$index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['imagen'])){
-                        $file_name = $_FILES['preguntas']['name'][$index]['imagen'];
-                        $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['imagen'];
-                        $file_type = $_FILES['preguntas']['type'][$index]['imagen'];
-                        $file_size = $_FILES['preguntas']['size'][$index]['imagen'];
-                        if(strpos($file_type, 'image/') === 0){
-                            $imagen_pregunta = file_get_contents($file_tmp);
-                            $nombre_imagen_pregunta = $file_name;
-                        }     
-                    }
+                    // if(isset($_FILES['preguntas']['name'][$index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['imagen'])){
+                    //     $file_name = $_FILES['preguntas']['name'][$index]['imagen'];
+                    //     $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['imagen'];
+                    //     $file_type = $_FILES['preguntas']['type'][$index]['imagen'];
+                    //     $file_size = $_FILES['preguntas']['size'][$index]['imagen'];
+                    //     if(strpos($file_type, 'image/') === 0){
+                    //         $imagen_pregunta = file_get_contents($file_tmp);
+                    //         $nombre_imagen_pregunta = $file_name;
+                    //     }     
+                    // }
                     // 2) Fallback Base64 (si vino en JSON)
                     if($imagen_pregunta === null && !empty($pregunta_data['imagen_base64'])){
                         $b64 = $pregunta_data['imagen_base64'];
@@ -194,16 +194,16 @@ class crearCuestionario_controller extends BaseController{
                                 $nombre_imagen_opcion = null;
 
                                 // 1) Multipart (si vino archivo)
-                                if(isset($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'])){
-                                    $file_name = $_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'];
-                                    $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['opciones'][$opcion_index]['imagen'];
-                                    $file_type = $_FILES['preguntas']['type'][$index]['opciones'][$opcion_index]['imagen'];
-                                    //validar que sea una imagen
-                                    if(strpos($file_type, 'image/') === 0){
-                                        $imagen_opcion = file_get_contents($file_tmp);
-                                        $nombre_imagen_opcion = $file_name;
-                                    }
-                                }
+                                // if(isset($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen']) && !empty($_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'])){
+                                //     $file_name = $_FILES['preguntas']['name'][$index]['opciones'][$opcion_index]['imagen'];
+                                //     $file_tmp = $_FILES['preguntas']['tmp_name'][$index]['opciones'][$opcion_index]['imagen'];
+                                //     $file_type = $_FILES['preguntas']['type'][$index]['opciones'][$opcion_index]['imagen'];
+                                //     //validar que sea una imagen
+                                //     if(strpos($file_type, 'image/') === 0){
+                                //         $imagen_opcion = file_get_contents($file_tmp);
+                                //         $nombre_imagen_opcion = $file_name;
+                                //     }
+                                // }
                                 // 2) Fallback Base64 (si vino en JSON)
                                 if($imagen_opcion === null && !empty($opcion_data['imagen_base64'])){
                                     $b64o = $opcion_data['imagen_base64'];
