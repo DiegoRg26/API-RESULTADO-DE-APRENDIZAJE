@@ -263,6 +263,8 @@ class estudiante_controller extends BaseController{
                         c.descripcion,
                         c.tiempo_limite,
                         p.nombre AS periodo,
+                        p.fecha_inicio,
+                        p.fecha_fin,
                         a.id AS asignacion_id
                     FROM asignacion a
                     INNER JOIN apertura ap ON a.id_apertura = ap.id
@@ -271,6 +273,7 @@ class estudiante_controller extends BaseController{
                     INNER JOIN periodo p ON ap.id_periodo = p.id
                     WHERE a.id_estudiante = :estudiante_id
                     AND ap.activo = 1
+                    AND p.fecha_inicio <= CURDATE()
                     AND p.fecha_fin >= CURDATE()";
             
             $stmt = $db->prepare($sql);
