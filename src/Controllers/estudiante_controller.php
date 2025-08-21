@@ -293,7 +293,7 @@ class estudiante_controller extends BaseController{
                         'total' => count($cuestionarios)
                     ]);
                 } else {
-                    return $this->errorResponse($response, 'No se encontraron cuestionarios asignados', 404);
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios asignados', 204);
                 }
             } else {
                 return $this->errorResponse($response, 'Error al obtener los cuestionarios', 500);
@@ -357,7 +357,7 @@ class estudiante_controller extends BaseController{
                         'total' => count($cuestionarios_completados)
                     ]);
                 } else {
-                    return $this->errorResponse($response, 'No se encontraron cuestionarios completados', 404);
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios completados', statusCode: 204);
                 }
             } else {
                 return $this->errorResponse($response, 'Error al obtener los cuestionarios completados', 500);
@@ -419,7 +419,7 @@ class estudiante_controller extends BaseController{
                         'total' => count($cuestionarios_programados)
                     ]);
                 } else {
-                    return $this->errorResponse($response, 'No se encontraron cuestionarios programados', 404);
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios programados', 204);
                 }
             } else {
                 return $this->errorResponse($response, 'Error al obtener los cuestionarios programados', 500);
@@ -486,7 +486,7 @@ class estudiante_controller extends BaseController{
                         'total' => count($cuestionarios_expirados)
                     ]);
                 } else {
-                    return $this->errorResponse($response, 'No se encontraron cuestionarios expirados', 404);
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios expirados', 204);
                 }
             } else {
                 return $this->errorResponse($response, 'Error al obtener los cuestionarios expirados', 500);
