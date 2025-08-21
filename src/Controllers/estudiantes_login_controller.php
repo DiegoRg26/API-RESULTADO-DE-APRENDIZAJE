@@ -55,6 +55,9 @@ class estudiantes_login_controller extends BaseController{
             if (!$student) {
                 return $this->errorResponse($response, 'Credenciales incorrectas', 401);
             }
+
+            // agregar rol al estudiante
+            $student['rol'] = 2;
             
             // Verificar si el estudiante está activo
             if (!$student['estado']) {
@@ -381,6 +384,7 @@ class estudiantes_login_controller extends BaseController{
             'jti' => $jwtId, // JWT ID único para rastrear sesión
             'user_type' => 'student',
             'user_id' => (int) $student['id'],
+            'rol_user' => $student['rol'],
             'nombre' => $student['nombre'],
             'email' => $student['email'],
             'identificacion' => $student['identificacion'],
@@ -417,6 +421,7 @@ class estudiantes_login_controller extends BaseController{
     private function formatStudentData(array $student): array{
         return [
             'id' => (int) $student['id'],
+            'rol' => $student['rol'],
             'nombre' => $student['nombre'],
             'email' => $student['email'],
             'identificacion' => $student['identificacion'],

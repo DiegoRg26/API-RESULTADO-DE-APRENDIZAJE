@@ -63,10 +63,13 @@ class login_controller extends BaseController
             
             // Buscar usuario en base de datos
             $user = $this->findUserByEmail($db, $email);
-            
+
             if (!$user) {
                 return $this->errorResponse($response, 'Credenciales incorrectas', 401);
+            
             }
+            // agregar rol al usuario
+            $user['rol'] = 1;
             
             // Verificar contraseña
             if (!$this->verifyPassword($password, $user['password'])) {
@@ -197,6 +200,7 @@ class login_controller extends BaseController
             
             // Obtener datos actualizados del usuario
             $user = $this->findUserByEmail($db, $userData['email']);
+            $user['rol'] = $userData['rol_user'];
             
             if (!$user) {
                 return $this->errorResponse($response, 'Usuario no encontrado', 404);
@@ -282,6 +286,7 @@ class login_controller extends BaseController
             'iat' => $now,                             // Issued at
             'exp' => $expiration,                      // Expiration
             'user_id' => (int) $user['id'],
+            'rol_user' => $user['rol'],
             'nombre' => $user['nombre'],
             'email' => $user['email'],
             'programa_id' => $user['programa_id'] ? (int) $user['programa_id'] : null,
@@ -325,6 +330,7 @@ class login_controller extends BaseController
     private function formatUserData(array $user): array{
         return [
             'id' => (int) $user['id'],
+            'rol' => $user['rol'],
             'nombre' => $user['nombre'],
             'email' => $user['email'],
             'identificacion' => $user['identificacion'],
