@@ -274,7 +274,12 @@ class estudiante_controller extends BaseController{
                     WHERE a.id_estudiante = :estudiante_id
                     AND ap.activo = 1
                     AND p.fecha_inicio <= CURDATE()
-                    AND p.fecha_fin >= CURDATE()";
+                    AND p.fecha_fin >= CURDATE()
+                    AND NOT EXISTS (
+                        SELECT 1 FROM intento_cuestionario ic 
+                        WHERE ic.id_estudiante = :estudiante_id 
+                        AND ic.id_apertura = ap.id
+                    )";
             
             $stmt = $db->prepare($sql);
             $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);

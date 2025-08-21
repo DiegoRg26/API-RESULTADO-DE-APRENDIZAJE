@@ -28,8 +28,7 @@ class estudiantes_login_controller extends BaseController{
      * Autentica estudiante con email e identificación
      * Implementa sesiones únicas por estudiante
      */
-    public function authenticate(Request $request, Response $response, array $args): Response
-    {
+    public function authenticate(Request $request, Response $response, array $args): Response{
         $db = null;
         try {
             $db = $this->container->get('db');
@@ -112,8 +111,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Verifica token de estudiante y actualiza última actividad
      */
-    public function verifyStudentToken(Request $request, Response $response, array $args): Response
-    {
+    public function verifyStudentToken(Request $request, Response $response, array $args): Response{
         try {
             $db = $this->container->get('db');
             $token = $this->getBearerToken($request);
@@ -159,8 +157,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Cierra sesión de estudiante invalidando la sesión
      */
-    public function logoutStudent(Request $request, Response $response, array $args): Response
-    {
+    public function logoutStudent(Request $request, Response $response, array $args): Response{
         try {
             $db = $this->container->get('db');
             $token = $this->getBearerToken($request);
@@ -191,16 +188,15 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Busca estudiante por email e identificación
      */
-    private function findStudentByEmailAndId(PDO $db, string $email, string $identificacion)
-    {
+    private function findStudentByEmailAndId(PDO $db, string $email, string $identificacion){
         try {
             $query = "SELECT e.id, e.email, e.identificacion, e.nombre, e.id_programa, e.estado,
                             p.nombre as programa_nombre, c.nombre as campus_nombre
-                     FROM estudiante e 
-                     INNER JOIN programa p ON e.id_programa = p.id
-                     INNER JOIN campus c ON p.id_campus = c.id
-                     WHERE e.email = :email AND e.identificacion = :identificacion
-                     LIMIT 1";
+                        FROM estudiante e 
+                        INNER JOIN programa p ON e.id_programa = p.id
+                        INNER JOIN campus c ON p.id_campus = c.id
+                        WHERE e.email = :email AND e.identificacion = :identificacion
+                        LIMIT 1";
                     
             $stmt = $db->prepare($query);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
@@ -218,14 +214,13 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Maneja sesiones existentes del estudiante
      */
-    private function handleExistingSession(PDO $db, int $studentId, array $clientInfo): array
-    {
+    private function handleExistingSession(PDO $db, int $studentId, array $clientInfo): array{
         try {
             // Buscar sesión activa existente
             $query = "SELECT id, session_token, ip_address, user_agent, fecha_ultima_actividad 
-                     FROM sesion_estudiante 
-                     WHERE id_estudiante = :student_id AND activa = 1 
-                     LIMIT 1";
+                        FROM sesion_estudiante 
+                        WHERE id_estudiante = :student_id AND activa = 1 
+                        LIMIT 1";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':student_id', $studentId, PDO::PARAM_INT);
@@ -271,14 +266,13 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Crea una nueva sesión de estudiante
      */
-    private function createStudentSession(PDO $db, int $studentId, string $jwtId, array $clientInfo): bool
-    {
+    private function createStudentSession(PDO $db, int $studentId, string $jwtId, array $clientInfo): bool{
         try {
             $sessionToken = $this->generateSessionToken();
             
             $query = "INSERT INTO sesion_estudiante 
-                     (id_estudiante, session_token, jwt_jti, ip_address, user_agent) 
-                     VALUES (:student_id, :session_token, :jwt_jti, :ip_address, :user_agent)";
+                        (id_estudiante, session_token, jwt_jti, ip_address, user_agent) 
+                        VALUES (:student_id, :session_token, :jwt_jti, :ip_address, :user_agent)";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':student_id', $studentId, PDO::PARAM_INT);
@@ -298,13 +292,12 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Verifica si una sesión de estudiante es válida
      */
-    private function verifyStudentSession(PDO $db, string $jwtId, int $studentId): bool
-    {
+    private function verifyStudentSession(PDO $db, string $jwtId, int $studentId): bool{
         try {
             $query = "SELECT id FROM sesion_estudiante 
-                     WHERE jwt_jti = :jti AND id_estudiante = :student_id AND activa = 1 
-                     AND fecha_ultima_actividad > DATE_SUB(NOW(), INTERVAL 8 HOUR)
-                     LIMIT 1";
+                    WHERE jwt_jti = :jti AND id_estudiante = :student_id AND activa = 1 
+                    AND fecha_ultima_actividad > DATE_SUB(NOW(), INTERVAL 8 HOUR)
+                    LIMIT 1";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':jti', $jwtId, PDO::PARAM_STR);
@@ -322,12 +315,11 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Actualiza la última actividad de una sesión
      */
-    private function updateSessionActivity(PDO $db, string $jwtId): void
-    {
+    private function updateSessionActivity(PDO $db, string $jwtId): void{
         try {
             $query = "UPDATE sesion_estudiante 
-                     SET fecha_ultima_actividad = CURRENT_TIMESTAMP 
-                     WHERE jwt_jti = :jti AND activa = 1";
+                    SET fecha_ultima_actividad = CURRENT_TIMESTAMP 
+                    WHERE jwt_jti = :jti AND activa = 1";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':jti', $jwtId, PDO::PARAM_STR);
@@ -341,12 +333,11 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Invalida una sesión por JTI
      */
-    private function invalidateStudentSession(PDO $db, string $jwtId): void
-    {
+    private function invalidateStudentSession(PDO $db, string $jwtId): void{
         try {
             $query = "UPDATE sesion_estudiante 
-                     SET activa = 0 
-                     WHERE jwt_jti = :jti";
+                    SET activa = 0 
+                    WHERE jwt_jti = :jti";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':jti', $jwtId, PDO::PARAM_STR);
@@ -360,12 +351,11 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Invalida una sesión por ID
      */
-    private function invalidateStudentSessionById(PDO $db, int $sessionId): void
-    {
+    private function invalidateStudentSessionById(PDO $db, int $sessionId): void{
         try {
             $query = "UPDATE sesion_estudiante 
-                     SET activa = 0 
-                     WHERE id = :id";
+                    SET activa = 0 
+                    WHERE id = :id";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(':id', $sessionId, PDO::PARAM_INT);
@@ -379,8 +369,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Genera token JWT para estudiante
      */
-    private function generateStudentJwtToken(array $student, string $jwtId): string
-    {
+    private function generateStudentJwtToken(array $student, string $jwtId): string{
         $now = time();
         $expiration = $now + $this->jwtExpiration;
         
@@ -406,8 +395,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Valida datos de login de estudiante
      */
-    private function validateStudentLoginData(array $data): array
-    {
+    private function validateStudentLoginData(array $data): array{
         if (!isset($data['email']) || empty(trim($data['email']))) {
             return ['valid' => false, 'message' => 'El email es requerido'];
         }
@@ -426,8 +414,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Formatea datos del estudiante para respuesta
      */
-    private function formatStudentData(array $student): array
-    {
+    private function formatStudentData(array $student): array{
         return [
             'id' => (int) $student['id'],
             'nombre' => $student['nombre'],
@@ -443,8 +430,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Obtiene información del cliente
      */
-    private function getClientInfo(Request $request): array
-    {
+    private function getClientInfo(Request $request): array{
         return [
             'ip' => $this->getClientIpAddress($request),
             'user_agent' => $request->getHeaderLine('User-Agent') ?: 'Unknown'
@@ -454,8 +440,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Obtiene la IP del cliente
      */
-    private function getClientIpAddress(Request $request): string
-    {
+    private function getClientIpAddress(Request $request): string{
         $serverParams = $request->getServerParams();
         
         $ipKeys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 
@@ -479,8 +464,7 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Verifica si es el mismo dispositivo
      */
-    private function isSameDevice(array $existingSession, array $clientInfo): bool
-    {
+    private function isSameDevice(array $existingSession, array $clientInfo): bool{
         return $existingSession['ip_address'] === $clientInfo['ip'] && 
                $existingSession['user_agent'] === $clientInfo['user_agent'];
     }
@@ -488,24 +472,21 @@ class estudiantes_login_controller extends BaseController{
     /**
      * Genera ID único para JWT
      */
-    private function generateJwtId(): string
-    {
+    private function generateJwtId(): string{
         return uniqid('jwt_', true) . '_' . bin2hex(random_bytes(8));
     }
 
     /**
      * Genera token de sesión único
      */
-    private function generateSessionToken(): string
-    {
+    private function generateSessionToken(): string{
         return bin2hex(random_bytes(32));
     }
 
     /**
      * Limpia sesiones expiradas (método para ejecutar periódicamente)
      */
-    public function cleanExpiredSessions(PDO $db): int
-    {
+    public function cleanExpiredSessions(PDO $db): int{
         try {
             $query = "UPDATE sesion_estudiante 
                         SET activa = 0 

@@ -171,8 +171,7 @@ class MenuCuestionario_controller extends BaseController
 	 * @param string $fechaFin Fecha de fin del periodo
 	 * @return string Estado del cuestionario: 'Programado', 'Disponible' o 'Cerrado'
 	 */
-	private function determinarEstadoCuestionario(string $fechaInicio, string $fechaFin): string
-	{
+	private function determinarEstadoCuestionario(string $fechaInicio, string $fechaFin): string{
 		$hoy = date('Y-m-d');
 		
 		if ($hoy < $fechaInicio) {

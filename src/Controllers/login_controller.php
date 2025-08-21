@@ -262,8 +262,7 @@ class login_controller extends BaseController
      * @param string $hashedPassword Hash de la contraseña
      * @return bool
      */
-    private function verifyPassword(string $password, string $hashedPassword): bool
-    {
+    private function verifyPassword(string $password, string $hashedPassword): bool{
         return password_verify($password, $hashedPassword);
     }
     
@@ -273,8 +272,7 @@ class login_controller extends BaseController
      * @param array $user Datos del usuario
      * @return string Token JWT
      */
-    private function generateJwtToken(array $user): string
-    {
+    private function generateJwtToken(array $user): string{
         $now = time();
         $expiration = $now + $this->jwtExpiration;
         
@@ -299,8 +297,7 @@ class login_controller extends BaseController
      * @param array $data Datos del request
      * @return array Resultado de validación
      */
-    private function validateLoginData(array $data): array
-    {
+    private function validateLoginData(array $data): array{
         if (!isset($data['email']) || empty(trim($data['email']))) {
             return ['valid' => false, 'message' => 'El email es requerido'];
         }
@@ -325,8 +322,7 @@ class login_controller extends BaseController
      * @param array $user Datos del usuario
      * @return array Datos formateados
      */
-    private function formatUserData(array $user): array
-    {
+    private function formatUserData(array $user): array{
         return [
             'id' => (int) $user['id'],
             'nombre' => $user['nombre'],
