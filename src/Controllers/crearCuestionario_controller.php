@@ -115,7 +115,7 @@ class crearCuestionario_controller extends BaseController{
             }
             
             // Validar que el cuestionario existe
-            $cuestionario_id = $args['id'];
+            $cuestionario_id = $args['cuestionario_id'];
             $stmt_check = $db->prepare("SELECT id FROM cuestionario WHERE id = ?");
             $stmt_check->execute([$cuestionario_id]);
             if(!$stmt_check->fetch()){

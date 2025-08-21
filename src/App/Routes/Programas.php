@@ -7,6 +7,6 @@ $group->group('/programas', function(RouteCollectorProxy $subgroup){
     $subgroup->get('', 'App\Controllers\BaseController:getProgramas');
 
 
-    $subgroup->get('/{id}', 'App\Controllers\BaseController:getProgramaById');
+    $subgroup->get('/{programa_id}', 'App\Controllers\BaseController:getProgramaById');
     
 });

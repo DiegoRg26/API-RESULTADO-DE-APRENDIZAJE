@@ -136,7 +136,7 @@ class resolver_controller extends BaseController{
         $db = null;
         $stmt_preguntas = null;
         try{
-            $cuestionario_id = $args['id'];
+            $cuestionario_id = $args['cuestionario_id'];
             $db = $this->container->get('db');
             $sql_preguntas = "SELECT 
                                 p.id as pregunta_id,
@@ -210,7 +210,7 @@ class resolver_controller extends BaseController{
         $stmt_respuesta = null;
         try{
             $db = $this->container->get('db');
-            $cuestionario_id = $args['id'];
+            $cuestionario_id = $args['cuestionario_id'];
             
             // $estudiante_id = $this->getUserIdFromToken($request);  //Habilitar cuando este en produccion
 

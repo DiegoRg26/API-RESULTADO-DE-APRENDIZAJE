@@ -20,7 +20,7 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $apertura_id = $args["id"];
+            $apertura_id = $args["apertura_id"];
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
             $db = $this->container->get('db');
 
@@ -66,7 +66,9 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $apertura_id = $args["id"];
+            $apertura_id = $args["apertura_id"];
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
             $db = $this->container->get('db');
             $query_estudiantes = "SELECT 

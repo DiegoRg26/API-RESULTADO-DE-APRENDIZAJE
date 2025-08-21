@@ -184,7 +184,7 @@ class periodo_controller extends BaseController
 		$stmt = null;
 		try {
 			$db = $this->container->get('db');
-			$id = $args['id'] ?? null;
+			$id = $args['periodo_id'] ?? null;
 
 			if (!$id) {
 				return $this->errorResponse($response, 'ID de periodo requerido', 400);
@@ -252,7 +252,7 @@ class periodo_controller extends BaseController
 		$stmt = null;
 		try {
 			$db = $this->container->get('db');
-			$id = $args['id'] ?? null;
+			$id = $args['periodo_id'] ?? null;
 
 			if (!$id) {
 				return $this->errorResponse($response, 'ID de periodo requerido', 400);
@@ -401,7 +401,7 @@ class periodo_controller extends BaseController
 	public function getById(Request $request, Response $response, array $args): Response{
 		try {
 			$db = $this->container->get('db');
-			$id = $args['id'] ?? null;
+			$id = $args['periodo_id'] ?? null;
 
 			if (!$id) {
 				return $this->errorResponse($response, 'ID de periodo requerido', 400);

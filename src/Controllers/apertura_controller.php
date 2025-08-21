@@ -408,7 +408,7 @@ class apertura_controller extends BaseController
 			}
 			
 			// Obtener ID de la apertura a desactivar
-			$aperturaId = $args['id'] ?? null;
+			$aperturaId = $args['apertura_id'] ?? null;
 			if (!$aperturaId) {
 				return $this->errorResponse($response, 'ID de apertura requerido', 400);
 			}

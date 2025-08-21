@@ -19,7 +19,7 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados');
 
     // Obtener informacion de un estudiante
-    $subgroup->get('/{id}', 'App\Controllers\estudiante_controller:getEstInfo');
+    $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo');
     
     // Agregar estudiante
     $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante');

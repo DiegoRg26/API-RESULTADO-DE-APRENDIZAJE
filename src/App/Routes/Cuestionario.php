@@ -10,7 +10,7 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
     
     //Obtener informacion de un cuestionario
-    $subgroup->get('/{id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');
+    $subgroup->get('/{cuestionario_id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');
 
     // Obtener programas disponibles para crear cuestionario
     // $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
@@ -19,11 +19,11 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     $subgroup->post('/crear', 'App\Controllers\crearCuestionario_controller:crearCuestionario');
     
     // Anexar preguntas a cuestionario
-    $subgroup->post('/{id}/anexar-preguntas', 'App\Controllers\crearCuestionario_controller:anexarPreguntasAndOpciones');
+    $subgroup->post('/{cuestionario_id}/anexar-preguntas', 'App\Controllers\crearCuestionario_controller:anexarPreguntasAndOpciones');
     
     // Obtener preguntas y opciones de un cuestionario
-    $subgroup->get('/{id}/preguntas-opciones', 'App\Controllers\resolver_controller:obtenerPreguntasyOpciones');
+    $subgroup->get('/{cuestionario_id}/preguntas-opciones', 'App\Controllers\resolver_controller:obtenerPreguntasyOpciones');
     
     // Guardar intento de resolver cuestionario
-    $subgroup->post('/{id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
+    $subgroup->post('/{cuestionario_id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
 });

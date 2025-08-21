@@ -148,7 +148,7 @@ class estudiante_controller extends BaseController{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
-            $estudiante_id = $this->sanitizeInput($inputData['id']);
+            $estudiante_id = $this->sanitizeInput($inputData['estudiante_id']);
             $estudiante_identificacion = $this->sanitizeInput($inputData['identificacion']);
             $sql_deshabilitar_estudiante = "UPDATE estudiante SET estado = 0 WHERE id = :estudiante_id AND  identificacion = :identificacion";
             $stmt = $db->prepare($sql_deshabilitar_estudiante);
@@ -183,7 +183,7 @@ class estudiante_controller extends BaseController{
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
-            $estudiante_id = $this->sanitizeInput($inputData['id']);
+            $estudiante_id = $this->sanitizeInput($inputData['estudiante_id']);
             $estudiante_identificacion = $this->sanitizeInput($inputData['identificacion']);
             $sql_habilitar_estudiante = "UPDATE estudiante SET estado = 1 WHERE id = :estudiante_id AND  identificacion = :identificacion";
             $stmt = $db->prepare($sql_habilitar_estudiante);
@@ -215,7 +215,7 @@ class estudiante_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $estudiante_id = $args['id'];
+            $estudiante_id = $args['estudiante_id'];
             if($estudiante_id <= 0){return $this->errorResponse($response, 'Estudiante no encontrado', 404);}
             $db = $this->container->get('db');
             $sql_estudiante = "SELECT 

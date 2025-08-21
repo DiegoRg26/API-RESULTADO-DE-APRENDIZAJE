@@ -16,6 +16,6 @@ $group->group('/aperturas', function(RouteCollectorProxy $subgroup){
     $subgroup->post('/crear', 'App\Controllers\apertura_controller:create');
     
     // Desactivar apertura
-    $subgroup->delete('/{id}', 'App\Controllers\apertura_controller:deactivate');
+    $subgroup->delete('/{apertura_id}', 'App\Controllers\apertura_controller:deactivate');
     
 });

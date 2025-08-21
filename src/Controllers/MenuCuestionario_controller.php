@@ -188,7 +188,7 @@ class MenuCuestionario_controller extends BaseController
         $db = null;
         $stmt = null;
         try{
-            $cuest_id = $args['id'];
+            $cuest_id = $args['cuestionario_id'];
             if($cuest_id <= 0){return $this->errorResponse($response, 'Cuestionario no valido', 404);}
             $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);

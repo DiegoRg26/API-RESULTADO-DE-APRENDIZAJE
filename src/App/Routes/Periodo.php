@@ -16,12 +16,12 @@ $group->group('/periodo', function(RouteCollectorProxy $subgroup){
     // $subgroup->put('/periodos/{id}', 'App\Controllers\periodo_controller:update');
     
     // Obtener periodo específico por ID
-    $subgroup->get('/{id}', 'App\Controllers\periodo_controller:getById');
+    $subgroup->get('/{periodo_id}', 'App\Controllers\periodo_controller:getById');
     
     // Desactivar periodo
-    $subgroup->delete('/{id}', 'App\Controllers\periodo_controller:deactivate');
+    $subgroup->delete('/{periodo_id}', 'App\Controllers\periodo_controller:deactivate');
     
     // Reactivar periodo
-    $subgroup->put('/{id}/activate', 'App\Controllers\periodo_controller:activate');
+    $subgroup->put('/{periodo_id}/activate', 'App\Controllers\periodo_controller:activate');
     
 });

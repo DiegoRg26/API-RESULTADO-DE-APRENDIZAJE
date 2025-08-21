@@ -112,7 +112,7 @@ class ver_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $cuestionario_id = $args['id'];
+            $cuestionario_id = $args['cuestionario_id'];
             $cuestionario = null;
             $error = null;
             $error = $this->verificarCuestionario($cuestionario_id);
@@ -243,7 +243,7 @@ class ver_controller extends BaseController{
         $stmt_preguntas = null;
         $stmt_respuestas = null;
         try{
-            $intento_id = $args['id'];
+            $intento_id = $args['intento_id'];
             if($intento_id <= 0){return $this->errorResponse($response, 'ID de intento no valido', 400);}
             $db = $this->container->get('db');
             $sql_preguntas = "SELECT 
