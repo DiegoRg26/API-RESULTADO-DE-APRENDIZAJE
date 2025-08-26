@@ -26,7 +26,8 @@ class ver_controller extends BaseController{
             $check_query = "SELECT 
                         c.id, 
                         c.titulo, 
-                        c.descripcion, 
+                        c.descripcion,
+                        c.tiempo_limite, 
                         d.nombre as creador_nombre,
                         p.nombre as programa_nombre,
                         n.nombre as nivel_nombre,
@@ -125,6 +126,7 @@ class ver_controller extends BaseController{
                     p.orden_pregunta,
                     p.peso_pregunta,
                     p.imagen_pregunta,
+                    p.orientacion,
                     o.id as opcion_id,
                     o.texto_opcion,
                     o.imagen_opcion,

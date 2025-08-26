@@ -1,6 +1,10 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
+// Cargar el middleware manualmente
+require_once __DIR__ . '/../Middleware/middlewareAuth.php';
+use App\Middleware\middlewareAuth;
+
 $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
 
     // Obtener cuestionarios creados por el usuario
@@ -26,4 +30,4 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     
     // Guardar intento de resolver cuestionario
     $subgroup->post('/{cuestionario_id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
-});
+})->add(new middlewareAuth());

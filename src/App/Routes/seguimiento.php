@@ -1,6 +1,10 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
+// Cargar el middleware manualmente
+require_once __DIR__ . '/../Middleware/middlewareAuth.php';
+use App\Middleware\middlewareAuth;
+
 $group->group('/seguimiento', function(RouteCollectorProxy $subgroup){
 
     // Solicitar la informacion de un cuestionario, en base a un ID de apertura.
@@ -13,4 +17,4 @@ $group->group('/seguimiento', function(RouteCollectorProxy $subgroup){
     $subgroup->get('/detalle','App\Controllers\seguimiento_controller:getSeguiCuestEstudiantes');
 
     $subgroup->get('/allquiz','App\Controllers\seguimiento_controller:getAllDocQuiz');
-});
+})->add(new middlewareAuth() );

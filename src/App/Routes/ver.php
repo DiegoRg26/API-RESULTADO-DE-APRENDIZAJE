@@ -1,6 +1,6 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
-
+use App\Middleware\middlewareAuth;
 
 $group->group('/ver', function(RouteCollectorProxy $subgroup){
 
@@ -12,4 +12,4 @@ $group->group('/ver', function(RouteCollectorProxy $subgroup){
 
     // Obtener las respuestas de un estudiante para un cuestionario.
     $subgroup->get('/respuestas/{intento_id}','App\Controllers\ver_controller:getRespDet');
-});
+})->add(new middlewareAuth());
