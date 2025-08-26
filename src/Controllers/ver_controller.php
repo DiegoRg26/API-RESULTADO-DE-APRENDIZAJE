@@ -244,6 +244,7 @@ class ver_controller extends BaseController{
         $db = null;
         $stmt_preguntas = null;
         $stmt_respuestas = null;
+        $stmt_opciones = null;
         try{
             $intento_id = $args['intento_id'];
             if($intento_id <= 0){return $this->errorResponse($response, 'ID de intento no valido', 400);}
@@ -273,6 +274,7 @@ class ver_controller extends BaseController{
             
             $respuestas = [];
             foreach($preguntas as $pregunta){
+
                 $sql_opciones = "SELECT 
                                     op.id,
                                     op.texto_opcion,
@@ -288,18 +290,30 @@ class ver_controller extends BaseController{
                 $stmt_opciones = $db->prepare($sql_opciones);
                 $stmt_opciones->bindParam(':pregunta_id', $pregunta['pregunta_id'], PDO::PARAM_INT);
                 $stmt_opciones->execute();
+
                 $opciones = $stmt_opciones->fetchAll(PDO::FETCH_ASSOC);
-                foreach($opciones as $opcion){
-                    $opcion['imagen_opcion'] = (!empty($opcion['imagen_opcion']) ? base64_encode($opcion['imagen_opcion']) : null);
+
+                // Procesar imágenes de opciones
+                foreach($opciones as &$opcion){
+                    $_FILES['imagen_opcion'] = $opcion['imagen_opcion'];
+                    $imagen_opcion = $_FILES['imagen_opcion'];
+                    $opcion['imagen_opcion'] = (!empty($opcion['imagen_opcion']) ? base64_encode($imagen_opcion) : null);
                 }
+
                 $pregunta['opciones'] = $opciones;
-                $pregunta['imagen_pregunta'] = (!empty($pregunta['imagen_pregunta']) ? base64_encode($pregunta['imagen_pregunta']) : null);
+                
+                // Procesar imagen de pregunta
+                $_FILES['imagen_pregunta'] = $pregunta['imagen_pregunta'];
+                $imagen_pregunta = $_FILES['imagen_pregunta'];
+                $pregunta['imagen_pregunta'] = (!empty($pregunta['imagen_pregunta']) ? base64_encode($imagen_pregunta) : null);
                 $respuestas[] = $pregunta;
             }
+
             return $this->successResponse($response, 'Respuestas obtenidas exitosamente', $respuestas);
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error interno del servidor', 500);
         }finally{
+            if($stmt_opciones !== null){$stmt_opciones = null;}
             if($stmt_preguntas !== null){$stmt_preguntas = null;}
             if($stmt_respuestas !== null){$stmt_respuestas = null;}
             if($db !== null){$db = null;}

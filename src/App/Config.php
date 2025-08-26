@@ -1,9 +1,13 @@
 <?php
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
+
 $container->set('db_settings', function(){
     return (object)[
         'host' => "localhost",
-        'dbname' => "testv2",
-        'user'=> "root",
-        'password' => '',
+        'dbname' => $_ENV['DB_NAME'],
+        'user'=> $_ENV['DB_USER'],
+        'password' => $_ENV['DB_PASSWORD'],
     ];
 });
