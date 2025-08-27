@@ -143,6 +143,7 @@ class resolver_controller extends BaseController{
                                 p.texto_pregunta,
                                 p.orden_pregunta,
                                 p.peso_pregunta,
+                                p.orientacion,
                                 p.imagen_pregunta,
                                 o.id as opcion_id,
                                 o.texto_opcion,
@@ -172,6 +173,7 @@ class resolver_controller extends BaseController{
                         'texto_pregunta' => $row['texto_pregunta'],
                         'orden_pregunta' => $row['orden_pregunta'],
                         'peso_pregunta' => $row['peso_pregunta'],
+                        'orientacion' => $row['orientacion'],
                         'imagen_pregunta' => $imagen_pregunta_base64,
                         'opciones' => []
                     ];

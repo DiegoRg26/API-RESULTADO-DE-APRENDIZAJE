@@ -54,10 +54,10 @@ class resultado_Controller extends BaseController{
         $stmt_resultado = null;
         try{
             $db = $this->container->get('db');
-            $inputData = $this->getJsonInput($request);
-            if (!$inputData) {return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
-            $intento_id = $this->sanitizeInput($inputData['intento_id']);
+            $intento_id = $args['intento_id'];
+            if(!$intento_id){return $this->errorResponse($response, 'No se proporciono un intento valido', 400);}
             $usuario_id = $this->getUserIdFromToken($request);
+            if(!$usuario_id){return $this->errorResponse($response, 'No se proporciono un token valido', 401);}
 
             $verificaciones = $this->verificaciones($intento_id, $usuario_id);
             if(!$verificaciones){
@@ -118,7 +118,7 @@ class resultado_Controller extends BaseController{
             $stmt_resultado->bindParam(':usuario_id', $usuario_id);
             $stmt_resultado->execute();  
             if($stmt_resultado->rowCount() == 0){return $this->errorResponse($response, "El intento no existe o no pertenece al usuario", 404);}
-            $resultado = $stmt_resultado->fetch();
+            $resultado = $stmt_resultado->fetch(PDO::FETCH_ASSOC);
 
             $porcentaje = 0;
             if ($resultado['puntaje_total'] > 0) {
@@ -152,13 +152,15 @@ class resultado_Controller extends BaseController{
         $db = null;
         $stmt_detalles = null;
         try{
+            $usuario_id = $this->getUserIdFromToken($request);
+            if(!$usuario_id){return $this->errorResponse($response, "No se proporciono un token valido", 401);}
             $db = $this->container->get('db');
-            $inputData = $this->getJsonInput($request);
-            if (!$inputData) {return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
-            $intento_id = $this->sanitizeInput($inputData['intento_id']);
+            $intento_id = $args['intento_id'];
+            if(!$intento_id){return $this->errorResponse($response, "No se proporciono un intento valido", 400);}
             $sql_query_detalles = "SELECT 
                                     p.id as pregunta_id,
                                     p.texto_pregunta,
+                                    p.orientacion,
                                     p.orden_pregunta,
                                     p.peso_pregunta,
                                     p.imagen_pregunta,
@@ -185,12 +187,14 @@ class resultado_Controller extends BaseController{
             $stmt_detalles = $db->prepare($sql_query_detalles);
             $stmt_detalles->bindParam(':intento_id', $intento_id);
             $stmt_detalles->execute();
-            $detalles = $stmt_detalles->fetchAll();
+            $detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
 
             return $this->successResponse($response, "Detalles de las respuestas obtenidos correctamente: ", [
                 "detalles" => $detalles,
                 "detalles_peso" => $detalles['peso_pregunta'],
                 "detalles_texto_pregunta" => $detalles['texto_pregunta'],
+                "detalles_orden_pregunta" => $detalles['orden_pregunta'],
+                "detalles_orientacion" => $detalles['orientacion'],
                 "detalles_imagen_pregunta" => $detalles['imagen_pregunta'],
                 "detalles_respuesta_pregunta" => $detalles['respuesta_pregunta'],
                 "detalles_imagen_respuesta_usuario" => $detalles['imagen_respuesta_usuario'],

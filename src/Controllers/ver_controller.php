@@ -113,20 +113,25 @@ class ver_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
+            $docente_id = $this->getUserIdFromToken($request);
+            if(!$docente_id){return $this->errorResponse($response, 'No se proporciono un token valido', 401);}
             $cuestionario_id = $args['cuestionario_id'];
             $cuestionario = null;
             $error = null;
             $error = $this->verificarCuestionario($cuestionario_id);
             if(!$error['status']){return $this->errorResponse($response, $error['mensaje'], 404);}
+
             $cuestionario = $error['cuestionario'];
+
             $db = $this->container->get('db');
+
             $sql = "SELECT 
                     p.id as pregunta_id,
                     p.texto_pregunta,
+                    p.orientacion,
                     p.orden_pregunta,
                     p.peso_pregunta,
                     p.imagen_pregunta,
-                    p.orientacion,
                     o.id as opcion_id,
                     o.texto_opcion,
                     o.imagen_opcion,
@@ -140,7 +145,9 @@ class ver_controller extends BaseController{
             $stmt->bindParam(':cuestionario_id', $cuestionario_id);
             $stmt->execute();
             $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
             $preguntas_con_opciones = [];
+
             foreach ($resultados as $row){
                 $pregunta_id = $row['pregunta_id'];
 
@@ -151,6 +158,7 @@ class ver_controller extends BaseController{
                     $preguntas_con_opciones[$pregunta_id] = [
                         'pregunta_id' => $row['pregunta_id'],
                         'texto_pregunta' => $row['texto_pregunta'],
+                        'orientacion' => $row['orientacion'],
                         'orden_pregunta' => $row['orden_pregunta'],
                         'peso_pregunta' => $row['peso_pregunta'],
                         'imagen_pregunta' => (!empty($row['imagen_pregunta']) ? base64_encode($imagen_pregunta) : null),

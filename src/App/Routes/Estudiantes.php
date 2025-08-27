@@ -22,6 +22,9 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     // Obtener cuestionarios expirados
     $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados')->add(new middlewareAuth());
 
+    // Logout estudiante
+    $subgroup->get('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent')->add(new middlewareAuth());
+
     // Obtener informacion de un estudiante
     $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo')->add(new middlewareAuth());
     
@@ -30,9 +33,6 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     
     // Login estudiante
     $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
-    
-    // Logout estudiante
-    $subgroup->post('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent')->add(new middlewareAuth());
     
     // Verificar token estudiante
     $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken')->add(new middlewareAuth());

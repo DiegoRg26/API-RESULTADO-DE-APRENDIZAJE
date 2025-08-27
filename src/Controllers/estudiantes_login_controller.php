@@ -78,7 +78,7 @@ class estudiantes_login_controller extends BaseController{
             $token = $this->generateStudentJwtToken($student, $jwtId);
 
             $sql_delete_logs = "DELETE FROM sesion_estudiante 
-                                WHERE fecha_creacion < DATE_SUB(NOW(), INTERVAL 8 HOUR) AND id_estudiante = :estudiante_id";
+                                WHERE fecha_creacion < DATE_SUB(NOW(), INTERVAL 3 MINUTE) AND id_estudiante = :estudiante_id";
             $stmt = $db->prepare($sql_delete_logs);
             $stmt->bindParam(':estudiante_id', $student['id']);
             $stmt->execute();
