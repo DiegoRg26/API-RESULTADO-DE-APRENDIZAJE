@@ -33,6 +33,9 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     
     // Login estudiante
     $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
+
+    // Refrescar token estudiante
+    $subgroup->post('/refresh', 'App\Controllers\estudiantes_login_controller:refreshToken')->add(new middlewareAuth());
     
     // Verificar token estudiante
     $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken')->add(new middlewareAuth());
