@@ -1,6 +1,5 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
-use App\Middleware\middlewareAuth;
 
 $group->group('/ver', function(RouteCollectorProxy $subgroup){
 
@@ -12,4 +11,4 @@ $group->group('/ver', function(RouteCollectorProxy $subgroup){
     
     // Obtener el intento mas reciente de un estudiante para un cuestionario.
     $subgroup->post('/intento','App\Controllers\ver_controller:getLastTry');
-})->add(new middlewareAuth());
+});

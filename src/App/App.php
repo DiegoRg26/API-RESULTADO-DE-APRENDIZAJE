@@ -6,6 +6,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 $aux = new \DI\Container();
 AppFactory::setContainer($aux);
 $app = AppFactory::create();
+// $app->addErrorMiddleware(true, true, true);
 $container = $app->getContainer();
 $app->add(function($request, $handler){
     $response = $handler->handle($request);

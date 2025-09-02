@@ -1,8 +1,6 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-require_once __DIR__ . '/../Middleware/middlewareAuth.php';
-
 $group->group('/resultados', function(RouteCollectorProxy $subgroup){
 
     // Obtener resultados de un intento

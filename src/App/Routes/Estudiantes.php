@@ -1,49 +1,45 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-// Cargar el middleware manualmente
-require_once __DIR__ . '/../Middleware/middlewareAuth.php';
-use App\Middleware\middlewareAuth;
-
 $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
 
     // Obtener estudiantes de un programa
-    $subgroup->get('', 'App\Controllers\estudiante_controller:getEstudiantes')->add(new middlewareAuth());
+    $subgroup->get('', 'App\Controllers\estudiante_controller:getEstudiantes');
 
     // Obtener cuestionarios asignados
-    $subgroup->get('/cuestionarios', 'App\Controllers\estudiante_controller:getCuestionariosAsignados')->add(new middlewareAuth());
+    $subgroup->get('/cuestionarios', 'App\Controllers\estudiante_controller:getCuestionariosAsignados');
 
     // Obtener cuestionarios completados
-    $subgroup->get('/cuestionarios/completados', 'App\Controllers\estudiante_controller:getCuestionariosCompletados')->add(new middlewareAuth());
+    $subgroup->get('/cuestionarios/completados', 'App\Controllers\estudiante_controller:getCuestionariosCompletados');
 
     // Obtener cuestionarios programados
-    $subgroup->get('/cuestionarios/programados', 'App\Controllers\estudiante_controller:getCuestionariosProgramados')->add(new middlewareAuth());
+    $subgroup->get('/cuestionarios/programados', 'App\Controllers\estudiante_controller:getCuestionariosProgramados');
 
     // Obtener cuestionarios expirados
-    $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados')->add(new middlewareAuth());
+    $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados');
 
     // Logout estudiante
-    $subgroup->get('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent')->add(new middlewareAuth());
+    $subgroup->get('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
 
     // Obtener informacion de un estudiante
-    $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo')->add(new middlewareAuth());
+    $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo');
     
     // Agregar estudiante
-    $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante')->add(new middlewareAuth())   ;
+    $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante');
     
     // Login estudiante
     $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
 
     // Refrescar token estudiante
-    $subgroup->post('/refresh', 'App\Controllers\estudiantes_login_controller:refreshToken')->add(new middlewareAuth());
+    $subgroup->post('/refresh', 'App\Controllers\estudiantes_login_controller:refreshToken');
     
     // Verificar token estudiante
-    $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken')->add(new middlewareAuth());
+    $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken');
     
     // Habilitar estudiante
-    $subgroup->put('/habilitar', 'App\Controllers\estudiante_controller:habilitarEstudiante')->add(new middlewareAuth());
+    $subgroup->put('/habilitar', 'App\Controllers\estudiante_controller:habilitarEstudiante');
     
     // Deshabilitar estudiante 
-    $subgroup->put('/deshabilitar', 'App\Controllers\estudiante_controller:deshabilitarEstudiante')->add(new middlewareAuth());
+    $subgroup->put('/deshabilitar', 'App\Controllers\estudiante_controller:deshabilitarEstudiante');
 
 });

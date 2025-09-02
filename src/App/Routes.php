@@ -21,6 +21,7 @@ $app->add(function ($request, $handler) {
 $app->group('/api', function(RouteCollectorProxy $group){
     
     $group->get('/test', 'App\Controllers\test:getTesteo');
+    $group->get('/init-seed', 'App\Database\InitSeeder:exeSeeds');
     //===========================[Rutas de Programas]=========================
     @include __DIR__ . '/Routes/Programas.php';
     

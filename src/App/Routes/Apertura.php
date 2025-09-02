@@ -1,10 +1,6 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-// Cargar el middleware manualmente
-require_once __DIR__ . '/../Middleware/middlewareAuth.php';
-use App\Middleware\middlewareAuth;
-
 $group->group('/aperturas', function(RouteCollectorProxy $subgroup){
 
     // Obtener cuestionarios disponibles para apertura (sin aperturas activas) ✅
@@ -22,4 +18,4 @@ $group->group('/aperturas', function(RouteCollectorProxy $subgroup){
     // Desactivar apertura
     $subgroup->delete('/{apertura_id}', 'App\Controllers\apertura_controller:deactivate');
     
-})->add(new middlewareAuth());
+});

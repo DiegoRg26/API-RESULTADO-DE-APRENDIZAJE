@@ -1,10 +1,6 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-// Cargar el middleware manualmente
-require_once __DIR__ . '/../Middleware/middlewareAuth.php';
-use App\Middleware\middlewareAuth;
-
 $group->group('/periodo', function(RouteCollectorProxy $subgroup){
 
     // Listar periodos activos
@@ -28,4 +24,4 @@ $group->group('/periodo', function(RouteCollectorProxy $subgroup){
     // Reactivar periodo
     $subgroup->put('/{periodo_id}/activate', 'App\Controllers\periodo_controller:activate');
     
-})->add(new middlewareAuth());
+});

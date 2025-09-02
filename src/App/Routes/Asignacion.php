@@ -1,10 +1,6 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
 
-// Cargar el middleware manualmente
-require_once __DIR__ . '/../Middleware/middlewareAuth.php';
-use App\Middleware\middlewareAuth;
-
 $group->group('/asignacion', function(RouteCollectorProxy $subgroup){
 
     // Crear asignación
@@ -19,4 +15,4 @@ $group->group('/asignacion', function(RouteCollectorProxy $subgroup){
     // Obtener aperturas con asignaciones
     $subgroup->get('/aperturas', 'App\Controllers\asignacion_controller:getAsignacionesByApertura');
     
-})->add(new middlewareAuth());
+});
