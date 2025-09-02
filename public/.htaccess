@@ -1,5 +1,51 @@
 RewriteEngine On
 
+# Configuración de seguridad
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Configuración CORS para API
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+Header always set Access-Control-Max-Age "3600"
+
+# Manejar solicitudes OPTIONS (preflight CORS)
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ - [R=200,L]
+
+# Ocultar información del servidor
+ServerTokens Prod
+Header unset X-Powered-By
+
+# Configuración de caché para archivos estáticos
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType application/javascript "access plus 1 month"
+	ExpiresByType image/png "access plus 1 month"
+	ExpiresByType image/jpg "access plus 1 month"
+	ExpiresByType image/jpeg "access plus 1 month"
+	ExpiresByType image/gif "access plus 1 month"
+	ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# Configuración de compresión
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/plain
+	AddOutputFilterByType DEFLATE text/html
+	AddOutputFilterByType DEFLATE text/xml
+	AddOutputFilterByType DEFLATE text/css
+	AddOutputFilterByType DEFLATE application/xml
+	AddOutputFilterByType DEFLATE application/xhtml+xml
+	AddOutputFilterByType DEFLATE application/rss+xml
+	AddOutputFilterByType DEFLATE application/javascript
+	AddOutputFilterByType DEFLATE application/x-javascript
+	AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
 # Permitir archivos y directorios existentes
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -7,6 +53,19 @@ RewriteCond %{REQUEST_FILENAME} !-d
 # Reescribir todo al index.php
 RewriteRule ^ index.php [QSA,L]
 
-# Manejar solicitudes OPTIONS
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ $1 [R=200,L]
+# Bloquear acceso a archivos sensibles
+<Files ~ "^\.">
+	Order allow,deny
+	Deny from all
+</Files>
+
+<Files ~ "\.(env|log|sql)$">
+	Order allow,deny
+	Deny from all
+</Files>
+
+# Configurar límites de subida (ajustar según necesidades)
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value max_execution_time 300
+php_value max_input_time 300
