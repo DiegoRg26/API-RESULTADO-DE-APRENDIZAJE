@@ -18,11 +18,12 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     // Obtener cuestionarios expirados
     $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados');
 
-    // Logout estudiante
-    $subgroup->get('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
-
+    
     // Obtener informacion de un estudiante
     $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo');
+    
+    // Logout estudiante
+    $subgroup->post('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
     
     // Agregar estudiante
     $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante');
