@@ -24,16 +24,17 @@ class resolver_controller extends BaseController
         $stmt_cuestionario = null;
         $stmt_periodo = null;
         $stmt_verificar = null;
-        try {
+        try{
             $db = $this->container->get('db');
-            $cuestionario_id = $args['id'];
-            $estudianteData = $this->getUserDataFromToken($request);
-            $estudiante_id = $estudianteData['id'];
+            $cuestionario_id = $args['cuestionario_id'];
+            // $estudianteData = $this->getUserDataFromToken($request);
+            $estudiante_id = $this->getUserIdFromToken($request);
             // Verificar que el cuestionario existe y está activo
             $query_cuestionario = "SELECT 
                 c.id, 
                 c.titulo, 
                 c.descripcion, 
+                c.tiempo_limite, 
                 rcp.id as relacion_id,
                 d.nombre as creador_nombre,
                 p.nombre as programa_nombre,
@@ -59,7 +60,7 @@ class resolver_controller extends BaseController
             $stmt_cuestionario = $db->prepare($query_cuestionario);
             $stmt_cuestionario->bindParam(':id', $cuestionario_id);
             $stmt_cuestionario->execute();
-            if ($stmt_cuestionario->rowCount() == 0) {
+            if($stmt_cuestionario->rowCount() == 0){
                 return $this->errorResponse($response, 'Cuestionario con id: ' . $cuestionario_id . ' no encontrado', 404);
             }
             $cuestionario = $stmt_cuestionario->fetch(PDO::FETCH_ASSOC);
@@ -87,14 +88,14 @@ class resolver_controller extends BaseController
             $stmt_periodo->bindParam(':cuestionario_id', $cuestionario_id);
             $stmt_periodo->bindParam(':estudiante_id', $estudiante_id);
             $stmt_periodo->execute();
-            if ($stmt_periodo->rowCount() == 0) {
+            if($stmt_periodo->rowCount() == 0){
                 return $this->errorResponse($response, 'El estudiante no tiene acceso al cuestionario', 403);
             }
             $periodo = $stmt_periodo->fetch(PDO::FETCH_ASSOC);
             $fecha_actual = date('Y-m-d');
             $fecha_inicio = $periodo['fecha_inicio'];
             $fecha_fin = $periodo['fecha_fin'];
-            if ($fecha_actual < $fecha_inicio || $fecha_actual > $fecha_fin) {
+            if($fecha_actual < $fecha_inicio || $fecha_actual > $fecha_fin){
                 return $this->errorResponse($response, 'El cuestionario no está disponible, fechas válidas: ' . $fecha_inicio . ' - ' . $fecha_fin, 403);
             }
             // Verificar si ya resolvió este cuestionario en la apertura actual
@@ -111,33 +112,32 @@ class resolver_controller extends BaseController
             $stmt_verificar->bindParam(':usuario_id', $estudiante_id);
             $stmt_verificar->bindParam(':cuestionario_id', $cuestionario_id);
             $stmt_verificar->execute();
-            if ($stmt_verificar->rowCount() > 0) {
+            if($stmt_verificar->rowCount() > 0){
                 return $this->errorResponse($response, 'Ya has realizado este cuestionario en el periodo actual', 403);
             }
             return $this->successResponse($response, 'Cuestionario disponible', [
                 'cuestionario' => $cuestionario,
                 'periodo' => $periodo
             ]);
-        } catch (Exception $e) {
+        }catch(Exception $e){
             return $this->errorResponse($response, 'Error al verificar la resolución: ' . $e->getMessage(), 500);
-        } finally {
-            if ($db !== null) {
+        }finally{
+            if($db !== null){
                 $db = null;
             }
-            if ($stmt_cuestionario !== null) {
+            if($stmt_cuestionario !== null){
                 $stmt_cuestionario = null;
             }
-            if ($stmt_periodo !== null) {
+            if($stmt_periodo !== null){
                 $stmt_periodo = null;
             }
-            if ($stmt_verificar !== null) {
+            if($stmt_verificar !== null){
                 $stmt_verificar = null;
             }
         }
     }
 
-    public function obtenerPreguntasyOpciones(Request $request, Response $response, array $args): Response
-    {
+    public function obtenerPreguntasyOpciones(Request $request, Response $response, array $args): Response{
         $db = null;
         $stmt_preguntas = null;
         try {

@@ -12,6 +12,9 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     //Obtener informacion de un cuestionario
     $subgroup->get('/{cuestionario_id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');
 
+    // Verificar cuestionario
+    $subgroup->get('/{cuestionario_id}/verificar', 'App\Controllers\resolver_controller:verificarResolucion');
+
     // Obtener programas disponibles para crear cuestionario
     // $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
     
