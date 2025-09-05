@@ -20,11 +20,12 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $apertura_id = $args["apertura_id"];
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
             $db = $this->container->get('db');
 
-            $user_id = $this->getUserIdFromToken($request);
             $query_cuestionario = "SELECT 
                                     a.id as apertura_id,
                                     c.id,
@@ -66,9 +67,9 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $apertura_id = $args["apertura_id"];
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $apertura_id = $args["apertura_id"];
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
             $db = $this->container->get('db');
             $query_estudiantes = "SELECT 
@@ -127,8 +128,9 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $db = $this->container->get('db');
             $query_seguimiento = "SELECT 
         a.id as apertura_id,
         c.id as cuestionario_id,
@@ -196,8 +198,9 @@ class seguimiento_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $db = $this->container->get('db');
             $docente_id = $this->getUserIdFromToken($request);
+            if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $db = $this->container->get('db');
             $sql_allQuiz = "SELECT 
                                 c.id as cuestionario_id,
                                 c.titulo,

@@ -28,6 +28,9 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     // Agregar estudiante
     $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante');
     
+    // Agregar estudiantes[array]
+    $subgroup->post('/agregar-all', 'App\Controllers\estudiante_controller:agregarEstudiantes');
+
     // Login estudiante
     $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
 

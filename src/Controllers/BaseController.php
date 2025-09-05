@@ -224,9 +224,9 @@ class BaseController{
         $db = null;
         $stmt_get_programa = null;
         try{
-            $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $db = $this->container->get('db');
             $programa_id = $args['programa_id'];
             $sql_get_programa = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
                                     FROM programa p 

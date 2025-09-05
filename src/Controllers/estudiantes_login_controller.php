@@ -298,30 +298,13 @@ class estudiantes_login_controller extends BaseController
             $existingSession = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($existingSession) {
-                // Verificar si es el mismo dispositivo/navegador
-                $sameDevice = $this->isSameDevice($existingSession, $clientInfo);
-
-                if ($sameDevice) {
-                    // Mismo dispositivo, invalidar sesión anterior y permitir nueva
-                    $this->invalidateStudentSessionById($db, $existingSession['id']);
-                    return ['action' => 'allow', 'message' => 'Renovando sesión en mismo dispositivo'];
-                } else {
-                    // Verificar si la sesión está realmente activa (menos de 8 horas)
-                    $lastActivity = strtotime($existingSession['fecha_ultima_actividad']);
-                    $now = time();
-
-                    if (($now - $lastActivity) > $this->sessionExpiration) {
-                        // Sesión expirada, permitir nueva
-                        $this->invalidateStudentSessionById($db, $existingSession['id']);
-                        return ['action' => 'allow', 'message' => 'Sesión anterior expirada'];
-                    } else {
-                        // Sesión activa en otro dispositivo
-                        return [
-                            'action' => 'block',
-                            'message' => 'Ya existe una sesión activa desde otro dispositivo. Cierra sesión primero.'
-                        ];
-                    }
-                }
+                // Política: una sola sesión activa por estudiante.
+                // Bloquear cualquier nuevo inicio de sesión hasta que cierre la sesión existente,
+                // sin importar si es el mismo dispositivo o diferente.
+                return [
+                    'action' => 'block',
+                    'message' => 'Ya existe una sesión activa para este usuario. Cierra la sesión en el otro dispositivo o pestaña antes de ingresar.'
+                ];
             }
 
             return ['action' => 'allow', 'message' => 'Sin sesiones existentes'];
@@ -340,8 +323,8 @@ class estudiantes_login_controller extends BaseController
             $sessionToken = $this->generateSessionToken();
 
             $query = "INSERT INTO sesion_estudiante 
-                        (id_estudiante, session_token, jwt_jti, ip_address, user_agent) 
-                        VALUES (:student_id, :session_token, :jwt_jti, :ip_address, :user_agent)";
+                        (id_estudiante, session_token, jwt_jti, ip_address, user_agent, fecha_ultima_actividad) 
+                        VALUES (:student_id, :session_token, :jwt_jti, :ip_address, :user_agent, NOW())";
 
             $stmt = $db->prepare($query);
             $stmt->bindParam(':student_id', $studentId, PDO::PARAM_INT);

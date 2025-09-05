@@ -197,6 +197,8 @@ class ver_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             if(!$inputData){return $this->errorResponse($response, 'No se proporcionaron datos', 400);}
             $estudiante_id = $this->sanitizeInput($inputData['estudiante_id']);
@@ -254,6 +256,8 @@ class ver_controller extends BaseController{
         $stmt_respuestas = null;
         $stmt_opciones = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $intento_id = $args['intento_id'];
             if($intento_id <= 0){return $this->errorResponse($response, 'ID de intento no valido', 400);}
             $db = $this->container->get('db');

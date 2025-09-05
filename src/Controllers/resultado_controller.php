@@ -53,11 +53,11 @@ class resultado_Controller extends BaseController{
         $db = null;
         $stmt_resultado = null;
         try{
+            $usuario_id = $this->getUserIdFromToken($request);
+            if(!$usuario_id){return $this->errorResponse($response, 'No se proporciono un token valido', 401);}
             $db = $this->container->get('db');
             $intento_id = $args['intento_id'];
             if(!$intento_id){return $this->errorResponse($response, 'No se proporciono un intento valido', 400);}
-            $usuario_id = $this->getUserIdFromToken($request);
-            if(!$usuario_id){return $this->errorResponse($response, 'No se proporciono un token valido', 401);}
 
             $verificaciones = $this->verificaciones($intento_id, $usuario_id);
             if(!$verificaciones){

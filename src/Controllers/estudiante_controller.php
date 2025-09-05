@@ -22,11 +22,9 @@ class estudiante_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
-            $db = $this->container->get('db');
             $user_id = $this->getUserIdFromToken($request);
-            if(!$user_id){
-                return $this->errorResponse($response, 'Usuario no autenticado', 401);
-            }
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $db = $this->container->get('db');
             //Obtiene los datos del usuario autenticado
             $userData = $this->getUserDataFromToken($request);
             $programa_id = $userData['programa_id'];
@@ -77,6 +75,8 @@ class estudiante_controller extends BaseController{
         $stmt = null;
         $db = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
@@ -145,6 +145,8 @@ class estudiante_controller extends BaseController{
         $stmt = null;
         $db = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
@@ -180,6 +182,8 @@ class estudiante_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
@@ -215,6 +219,8 @@ class estudiante_controller extends BaseController{
         $db = null;
         $stmt = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $estudiante_id = $args['estudiante_id'];
             if($estudiante_id <= 0){return $this->errorResponse($response, 'Estudiante no encontrado', 404);}
             $db = $this->container->get('db');
@@ -248,6 +254,8 @@ class estudiante_controller extends BaseController{
         $db = null;
         $stmt = null;
         try {
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
             
             // Obtener el ID del estudiante autenticado
@@ -315,7 +323,6 @@ class estudiante_controller extends BaseController{
         $stmt = null;
         try {
             $db = $this->container->get('db');
-            
             // Obtener el ID del estudiante autenticado
             $estudiante_id = $this->getUserIdFromToken($request);
 
@@ -379,7 +386,6 @@ class estudiante_controller extends BaseController{
         $stmt = null;
         try {
             $db = $this->container->get('db');
-            
             // Obtener el ID del estudiante autenticado
             $estudiante_id = $this->getUserIdFromToken($request);
 
@@ -503,5 +509,166 @@ class estudiante_controller extends BaseController{
         }
     }
 
+    /**
+     * Agrega múltiples estudiantes a la vez
+     * 
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function agregarEstudiantes(Request $request, Response $response, array $args): Response {
+        $db = null;
+        $stmt = null;
+        
+        try {
+            // Verificar autenticación
+            $user_id = $this->getUserIdFromToken($request);
+            if (!$user_id) {
+                return $this->errorResponse($response, 'Usuario no autenticado', 401);
+            }
+
+            // Obtener datos del usuario autenticado
+            $userData = $this->getUserDataFromToken($request);
+            $programa_id = $userData['programa_id'];
+            
+            // Obtener datos de entrada
+            $inputData = $this->getJsonInput($request);
+            if (!$inputData || !isset($inputData['estudiantes']) || !is_array($inputData['estudiantes'])) {
+                return $this->errorResponse($response, 'Se requiere un array de estudiantes en formato JSON', 400);
+            }
+
+            $estudiantes = $inputData['estudiantes'];
+            
+            // Si no se proporciona programa_id en los datos y el usuario no tiene uno asignado, devolver error
+            if (!$programa_id && !isset($inputData['programa_id'])) {
+                return $this->errorResponse($response, 'El programa es requerido', 400);
+            }
+
+            // Si el usuario no tiene programa asignado, usar el proporcionado en la solicitud
+            if (!$programa_id) {
+                $programa_id = $inputData['programa_id'];
+            }
+
+            $db = $this->container->get('db');
+            $db->beginTransaction();
+
+            $resultados = [
+                'exitosos' => [],
+                'fallidos' => []
+            ];
+
+            foreach ($estudiantes as $index => $estudiante) {
+                try {
+                    // Validar datos del estudiante
+                    if (empty($estudiante['nombre']) || empty($estudiante['email']) || empty($estudiante['identificacion'])) {
+                        $resultados['fallidos'][] = [
+                            'indice' => $index,
+                            'error' => 'Datos incompletos. Se requieren nombre, email e identificación',
+                            'datos' => $estudiante
+                        ];
+                        continue;
+                    }
+
+                    // Sanitizar datos
+                    $nombre = $this->sanitizeInput($estudiante['nombre']);
+                    $email = $this->sanitizeInput($estudiante['email']);
+                    $identificacion = $this->sanitizeInput($estudiante['identificacion']);
+
+                    // Verificar si el estudiante ya existe
+                    $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion AND id_programa = :programa_id";
+                    $stmt = $db->prepare($sql_verificar);
+                    $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
+                    $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                    $stmt->execute();
+
+                    if ($stmt->rowCount() > 0) {
+                        $resultados['fallidos'][] = [
+                            'indice' => $index,
+                            'error' => 'El estudiante con esta identificación ya existe en el programa',
+                            'datos' => $estudiante
+                        ];
+                        continue;
+                    }
+
+                    // Insertar el estudiante
+                    $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion, id_programa) 
+                                    VALUES (:nombre, :email, :identificacion, :programa_id)";
+                    $stmt = $db->prepare($sql_insertar);
+                    $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+                    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                    $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
+                    $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+
+                    if ($stmt->execute()) {
+                        $estudiante_id = $db->lastInsertId();
+                        $resultados['exitosos'][] = [
+                            'id' => $estudiante_id,
+                            'nombre' => $nombre,
+                            'email' => $email,
+                            'identificacion' => $identificacion,
+                            'programa_id' => $programa_id
+                        ];
+                    } else {
+                        throw new Exception('Error al insertar el estudiante');
+                    }
+                } catch (Exception $e) {
+                    $resultados['fallidos'][] = [
+                        'indice' => $index,
+                        'error' => $e->getMessage(),
+                        'datos' => $estudiante
+                    ];
+                }
+            }
+
+            // Si hay al menos un estudiante exitoso, confirmar la transacción
+            if (count($resultados['exitosos']) > 0) {
+                $db->commit();
+            } else {
+                $db->rollBack();
+                $errorData = [
+                    'mensaje' => 'No se pudo agregar ningún estudiante',
+                    'errores' => $resultados['fallidos']
+                ];
+                return $this->errorResponse(
+                    $response, 
+                    json_encode($errorData),
+                    400
+                );
+            }
+
+            // Preparar respuesta
+            $respuesta = [
+                'mensaje' => 'Proceso de carga de estudiantes completado',
+                'total_estudiantes' => count($estudiantes),
+                'exitosos' => count($resultados['exitosos']),
+                'fallidos' => count($resultados['fallidos']),
+                'detalles_exitosos' => $resultados['exitosos']
+            ];
+
+            // Si hay fallos, establecer el código de estado 207 (Multi-Status)
+            if (!empty($resultados['fallidos'])) {
+                $respuesta['detalles_fallidos'] = $resultados['fallidos'];
+                $response = $response->withStatus(207);
+            }
+            
+            // Devolver la respuesta como JSON
+            $response->getBody()->write(json_encode($respuesta));
+            return $response->withHeader('Content-Type', 'application/json');
+
+        } catch (Exception $e) {
+            if ($db !== null) {
+                $db->rollBack();
+            }
+            return $this->errorResponse($response, 'Error al procesar la solicitud: ' . $e->getMessage(), 500);
+        } finally {
+            if ($stmt !== null) {
+                $stmt = null;
+            }
+            if ($db !== null) {
+                $db = null;
+            }
+        }
+    }
     
 }

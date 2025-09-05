@@ -37,14 +37,10 @@ class MenuCuestionario_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
-			
-			// Obtener y validar el token JWT
-			$userId = $this->getUserIdFromToken($request);
-			if (!$userId) {
-				return $this->errorResponse($response, 'Token inválido o no proporcionado', 401);
-			}
 			
 			// Consulta para obtener cuestionarios del usuario
 			$query = "SELECT rcp.*, c.titulo, c.descripcion 
@@ -54,7 +50,7 @@ class MenuCuestionario_controller extends BaseController
 					    ORDER BY c.titulo ASC";
 			
 			$stmt = $db->prepare($query);
-			$stmt->bindParam(':docente_id', $userId, PDO::PARAM_INT);
+			$stmt->bindParam(':docente_id', $user_id, PDO::PARAM_INT);
 			$stmt->execute();
 			
 			$misCuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -90,14 +86,14 @@ class MenuCuestionario_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
-			// Obtener conexión a la base de datos
-			$db = $this->container->get('db');
 			
 			// Obtener y validar el token JWT
 			$userId = $this->getUserIdFromToken($request);
 			if (!$userId) {
 				return $this->errorResponse($response, 'Token inválido o no proporcionado', 401);
 			}
+			// Obtener conexión a la base de datos
+			$db = $this->container->get('db');
 			
 			// Consulta para obtener cuestionarios abiertos
 			$query = "
@@ -187,10 +183,11 @@ class MenuCuestionario_controller extends BaseController
         $db = null;
         $stmt = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $cuest_id = $args['cuestionario_id'];
             if($cuest_id <= 0){return $this->errorResponse($response, 'Cuestionario no valido', 404);}
             $db = $this->container->get('db');
-            $user_id = $this->getUserIdFromToken($request);
             $sql_cuest = "SELECT 
                             c.id, 
                             c.titulo, 

@@ -23,6 +23,8 @@ class asignacion_controller extends BaseController{
         $stmt_crear_asignacion = null;
         $db = null;
         try {
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if (!$inputData) {
@@ -79,10 +81,9 @@ class asignacion_controller extends BaseController{
         $db = null;
         try{
             $docente_id = $this->getUserIdFromToken($request);
+            if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
-            if(empty($docente_id)){
-                return $this->errorResponse($response, 'ID de docente inválido', 400);
-            }
+            if(empty($docente_id)){return $this->errorResponse($response, 'ID de docente inválido', 400);}
                 $query_get_asignaciones = "SELECT a.id, a.id_apertura, a.id_estudiante, e.identificacion,
                         e.nombre as estudiante_nombre, e.email,
                         c.titulo as cuestionario_titulo, p.nombre as periodo_nombre
@@ -119,6 +120,7 @@ class asignacion_controller extends BaseController{
         try{
             $db = $this->container->get('db');
             $docente_id = $this->getUserIdFromToken($request);
+            if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $sql_get_asignaciones = "SELECT DISTINCT ap.id, c.titulo, c.descripcion, p.nombre as periodo_nombre, 
                                 p.fecha_inicio, p.fecha_fin, pr.nombre as programa_nombre
                                 FROM apertura ap
@@ -156,6 +158,7 @@ class asignacion_controller extends BaseController{
             //verificar que la asignacion pertenezca al docente
             $id_asignacion = $args['id_asignacion'];
             $id_docente = $this->getUserIdFromToken($request);
+            if(!$id_docente){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
             $sql_verificar = "SELECT a.id 
                     FROM asignacion a
@@ -196,13 +199,14 @@ class asignacion_controller extends BaseController{
         $stmt_verificar = null;
         $stmt_eliminar = null;
         try{
+            $docente_id = $this->getUserIdFromToken($request);
+            if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){
                 return $this->errorResponse($response, 'Datos JSON inválidos', 400);
             }
             $apertura_id = $this->sanitizeInput($inputData['apertura_id']);
-            $docente_id = $this->getUserIdFromToken($request);
             $sql_verificar = "SELECT ap.id 
                             FROM apertura ap
                             JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id

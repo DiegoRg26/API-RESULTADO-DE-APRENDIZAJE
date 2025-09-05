@@ -25,10 +25,11 @@ class resolver_controller extends BaseController
         $stmt_periodo = null;
         $stmt_verificar = null;
         try{
+            $estudiante_id = $this->getUserIdFromToken($request);
+            if(!$estudiante_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
             $cuestionario_id = $args['cuestionario_id'];
             // $estudianteData = $this->getUserDataFromToken($request);
-            $estudiante_id = $this->getUserIdFromToken($request);
             // Verificar que el cuestionario existe y está activo
             $query_cuestionario = "SELECT 
                 c.id, 
@@ -141,6 +142,8 @@ class resolver_controller extends BaseController
         $db = null;
         $stmt_preguntas = null;
         try {
+            $user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $cuestionario_id = $args['cuestionario_id'];
             $db = $this->container->get('db');
             $sql_preguntas = "SELECT 
@@ -220,14 +223,15 @@ class resolver_controller extends BaseController
             $db = $this->container->get('db');
             $cuestionario_id = $args['cuestionario_id'];
 
-            // $estudiante_id = $this->getUserIdFromToken($request);  //Habilitar cuando este en produccion
+            $estudiante_id = $this->getUserIdFromToken($request);  //Habilitar cuando este en produccion
+            if(!$estudiante_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 
             // Obtener datos del JSON
             $inputData = $this->getJsonInput($request);
             if (!$inputData) {
                 return $this->errorResponse($response, 'Datos JSON inválidos', 400);
             }
-            $estudiante_id = $inputData['estudiante_id']; //Deshabilitar cuando este desplegada el API, unicamente fue creada para TESTING
+            // $estudiante_id = $inputData['estudiante_id']; //Deshabilitar cuando este desplegada el API, unicamente fue creada para TESTING
 
             // Validar campos requeridos
             $requiredFields = ['respuestas', 'tiempo_utilizado'];

@@ -27,7 +27,7 @@ class login_controller extends BaseController
     {
         parent::__construct($c);
         $this->jwtSecret = $_ENV['JWT_SECRET'];
-        $this->jwtExpiration = 3600; // 1 hora en segundos
+        $this->jwtExpiration = $_ENV['JWT_EXPIRATION'];
     }
     
     /**
@@ -158,6 +158,8 @@ class login_controller extends BaseController
             
             // Buscar usuario actualizado en BD
             $user = $this->findUserByEmail($db, $userData['email']);
+
+            $user['rol'] = $userData['rol_user'];
             
             if (!$user) {
                 return $this->errorResponse($response, 'Usuario no encontrado', 404);
@@ -330,7 +332,7 @@ class login_controller extends BaseController
     private function formatUserData(array $user): array{
         return [
             'id' => (int) $user['id'],
-            'rol' => $user['rol'],
+            'rol_user' => $user['rol'],
             'nombre' => $user['nombre'],
             'email' => $user['email'],
             'identificacion' => $user['identificacion'],

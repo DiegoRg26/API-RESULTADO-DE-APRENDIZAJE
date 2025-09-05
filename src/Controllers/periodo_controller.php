@@ -34,6 +34,8 @@ class periodo_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 			$inputData = $this->getJsonInput($request);
 
@@ -103,6 +105,8 @@ class periodo_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 			$id = $args['id'] ?? null;
 			
@@ -183,6 +187,8 @@ class periodo_controller extends BaseController
 		$check_stmt = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 			$id = $args['periodo_id'] ?? null;
 
@@ -251,6 +257,8 @@ class periodo_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 			$id = $args['periodo_id'] ?? null;
 
@@ -306,6 +314,8 @@ class periodo_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 
 					// Obtener todos los periodos activos
@@ -354,6 +364,8 @@ class periodo_controller extends BaseController
 		$db = null;
 		$stmt = null;
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 
 					// Obtener todos los periodos inactivos
@@ -400,6 +412,8 @@ class periodo_controller extends BaseController
 	 */
 	public function getById(Request $request, Response $response, array $args): Response{
 		try {
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			$db = $this->container->get('db');
 			$id = $args['periodo_id'] ?? null;
 

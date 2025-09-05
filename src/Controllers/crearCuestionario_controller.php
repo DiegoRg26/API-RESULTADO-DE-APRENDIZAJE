@@ -35,6 +35,8 @@ class crearCuestionario_controller extends BaseController{
         $stmt_insert_cuestionario = null;
         $stmt_insert_relacion = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){
@@ -108,6 +110,9 @@ class crearCuestionario_controller extends BaseController{
         $stmt_insert_pregunta = null;
         $stmt_insert_opcion = null;
         try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
             if(!$inputData){
@@ -259,8 +264,6 @@ class crearCuestionario_controller extends BaseController{
             }
         }
     }
-
-
     private function validateCuestionarioData(array $data): array{
         if(!isset($data['titulo']) || empty(trim($data['titulo']))){
             return ['valid' => false, 'message' => 'El titulo del cuestionario es requerido'];
