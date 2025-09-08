@@ -10,7 +10,7 @@ $subgroup->post('', 'App\Controllers\login_controller:authenticate');
 $subgroup->get('/verify', 'App\Controllers\login_controller:verifyToken');
 
 // Refrescar token JWT ✅
-$subgroup->get('/refresh', 'App\Controllers\login_controller:refreshToken');
+$subgroup->post('/refresh', 'App\Controllers\login_controller:refreshToken');
 
 // Obtener información del usuario autenticado
 $subgroup->get('/me', 'App\Controllers\login_controller:getCurrentUser');

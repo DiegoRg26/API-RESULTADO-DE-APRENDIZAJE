@@ -44,7 +44,8 @@ public/
 
 ## Controladores Principales
 
-- `login_controller.php`: Gestión de autenticación y tokens JWT
+- `login_controller.php`: Gestión de autenticación y tokens JWT para docentes/administradores
+- `estudiantes_login_controller.php`: Gestión de autenticación específica para estudiantes con JWT
 - `crearCuestionario_controller.php`: Creación y administración de cuestionarios
 - `asignacion_controller.php`: Asignación de cuestionarios a estudiantes
 - `resolver_controller.php`: Resolución de cuestionarios por parte de estudiantes
@@ -53,6 +54,8 @@ public/
 - `periodo_controller.php`: Gestión de períodos académicos
 - `apertura_controller.php`: Gestión de aperturas de cuestionarios
 - `MenuCuestionario_controller.php`: Menú de navegación de cuestionarios
+- `seguimiento_controller.php`: Seguimiento de progreso de estudiantes
+- `registro_controller.php`: Registro de nuevos usuarios
 
 ## Instalación
 
@@ -98,7 +101,7 @@ Authorization: Bearer <token>
 
 ### Endpoints
 
-#### Auth
+#### Auth (Docentes/Administradores)
 
 - `POST /auth` - Autenticación de usuarios
   - Body JSON:
@@ -118,10 +121,30 @@ Authorization: Bearer <token>
 - `GET /auth/me` - Obtener información del usuario autenticado
   - Headers: `Authorization: Bearer <token>`
 
-- `POST /auth/logout` - Cerrar sesión --> *No utilizado*
-  - Sin parámetros
+#### Auth Estudiantes
 
-- `POST /auth/register` - Registro de usuario
+- `POST /auth/estudiantes` - Autenticación de estudiantes
+  - Body JSON:
+    ```json
+    {
+      "email": "correo@institucion.edu.co",
+      "identificacion": "1234567890"
+    }
+    ```
+  - Retorna token JWT para el estudiante autenticado
+
+- `GET /auth/estudiantes/verify` - Verificar token JWT de estudiante
+  - Headers: `Authorization: Bearer <token>`
+
+- `POST /auth/estudiantes/refresh` - Refrescar token JWT de estudiante
+  - Headers: `Authorization: Bearer <token>`
+
+- `GET /auth/estudiantes/me` - Obtener información del estudiante autenticado
+  - Headers: `Authorization: Bearer <token>`
+
+#### Registro de Usuarios
+
+- `POST /auth/register` - Registro de nuevo usuario (docente/administrador)
 
 #### Cuestionario
 
