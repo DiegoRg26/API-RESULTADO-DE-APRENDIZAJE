@@ -6,8 +6,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Controllers\BaseController;
 use Psr\Container\ContainerInterface;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use PDO;
 use Exception;
 
@@ -438,6 +436,74 @@ class resolver_controller extends BaseController
             if ($stmt_respuesta !== null) {
                 $stmt_respuesta = null;
             }
+        }
+    }
+
+    public function updateEstado(Request $request, Response $response, array $args): Response{
+        $db = null;
+        $stmt_select = null;
+        $stmt_insert = null;
+        $stmt_update = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $db = $this->container->get('db');
+            $inputData = $this->getJsonInput($request);
+            $fecha_realizado = $inputData['fecha_realizado'];
+            $tiempo_total = $inputData['tiempo_total'];
+            $tiempo_guardado = $inputData['tiempo_guardado'];
+            $pregunta_opcion_guardado = $inputData['pregunta_opcion_guardado'];
+            $query_select = "SELECT
+                                id,
+                                estudiante_id,
+                                tiempo_total,
+                                tiempo_guardado,
+                                pregunta_opcion_guardado,
+                                fecha_realizado
+                                FROM  progreso_cuestionarios_intentos
+                                WHERE estudiante_id = :estudiante_id
+                                AND fecha_realizado = :fecha_realizado";
+            $stmt = $db->prepare($query_select);
+            $stmt->bindParam(':estudiante_id', $user_id);
+            $stmt->bindParam(':fecha_realizado', $fecha_realizado);
+            $stmt->execute();
+            $progreso = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$progreso){
+                $query_insert = "INSERT INTO progreso_cuestionarios_intentos 
+                                (tiempo_total, tiempo_guardado, pregunta_opcion_guardado, estudiante_id, fecha_realizado) 
+                                VALUES (:tiempo_total, :tiempo_guardado, :pregunta_opcion_guardado, :estudiante_id, :fecha_realizado)";
+                $stmt_insert = $db->prepare($query_insert);
+                $stmt_insert->bindParam(':tiempo_total', $tiempo_total);
+                $stmt_insert->bindParam(':tiempo_guardado', $tiempo_guardado);
+                $stmt_insert->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado);
+                $stmt_insert->bindParam(':estudiante_id', $user_id);
+                $stmt_insert->bindParam(':fecha_realizado', $fecha_realizado);
+                $stmt_insert->execute();
+                return $this->successResponse($response, 'Progreso guardado exitosamente');
+            }else{
+                $query_update = "UPDATE progreso_cuestionarios_intentos
+                                SET tiempo_total = :tiempo_total,
+                                tiempo_guardado = :tiempo_guardado,
+                                pregunta_opcion_guardado = :pregunta_opcion_guardado,
+                                fecha_realizado = :fecha_realizado
+                                WHERE estudiante_id = :estudiante_id
+                                AND fecha_realizado = :fecha_realizado";
+                $stmt_update = $db->prepare($query_update);
+                $stmt_update->bindParam(':tiempo_total', $tiempo_total);
+                $stmt_update->bindParam(':tiempo_guardado', $tiempo_guardado);
+                $stmt_update->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado);
+                $stmt_update->bindParam(':estudiante_id', $user_id);
+                $stmt_update->bindParam(':fecha_realizado', $fecha_realizado);
+                $stmt_update->execute();
+                return $this->successResponse($response,'Progreso actualizado exitosamente');
+            }
+        }catch(Exception $e){
+            return $this->errorResponse($response,$e->getMessage(),500);
+        }finally{
+            if($stmt_select !== null){$stmt_select = null;}
+            if($stmt_insert !== null){$stmt_insert = null;}
+            if($stmt_update !== null){$stmt_update = null;}
+            if($db !== null){$db = null;}
         }
     }
 }

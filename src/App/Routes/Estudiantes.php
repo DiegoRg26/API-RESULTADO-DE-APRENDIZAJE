@@ -17,19 +17,20 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
 
     // Obtener cuestionarios expirados
     $subgroup->get('/cuestionarios/expirados', 'App\Controllers\estudiante_controller:getCuestionariosExpirados');
-
     
     // Obtener informacion de un estudiante
     $subgroup->get('/{estudiante_id}', 'App\Controllers\estudiante_controller:getEstInfo');
-    
-    // Logout estudiante
-    $subgroup->post('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
     
     // Agregar estudiante
     $subgroup->post('/agregar', 'App\Controllers\estudiante_controller:agregarEstudiante');
     
     // Agregar estudiantes[array]
     $subgroup->post('/agregar-all', 'App\Controllers\estudiante_controller:agregarEstudiantes');
+
+    
+
+    // Logout estudiante
+    $subgroup->post('/logout', 'App\Controllers\estudiantes_login_controller:logoutStudent');
 
     // Login estudiante
     $subgroup->post('/login', 'App\Controllers\estudiantes_login_controller:authenticate');
@@ -39,6 +40,8 @@ $group->group('/estudiante', function(RouteCollectorProxy $subgroup){
     
     // Verificar token estudiante
     $subgroup->post('/verify', 'App\Controllers\estudiantes_login_controller:verifyStudentToken');
+
+
     
     // Habilitar estudiante
     $subgroup->put('/habilitar', 'App\Controllers\estudiante_controller:habilitarEstudiante');

@@ -29,4 +29,7 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     
     // Guardar intento de resolver cuestionario
     $subgroup->post('/{cuestionario_id}/guardar-intento', 'App\Controllers\resolver_controller:guardarIntento');
+
+    // Guardar estado del cuestionario (proceso de realizado)
+    $subgroup->post('/resolver/guardar-estado', 'App\Controllers\resolver_controller:updateEstado');
 });

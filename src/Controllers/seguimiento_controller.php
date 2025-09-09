@@ -28,6 +28,7 @@ class seguimiento_controller extends BaseController{
 
             $query_cuestionario = "SELECT 
                                     a.id as apertura_id,
+                                    a.activo,
                                     c.id,
                                     c.titulo,
                                     c.descripcion,
