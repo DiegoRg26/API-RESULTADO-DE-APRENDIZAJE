@@ -92,34 +92,32 @@ if (isset($_GET['apertura_id']) && is_numeric($_GET['apertura_id'])) {
     
     if ($apertura_seleccionada) {
         // Obtener resultados de los estudiantes para esta apertura
-        $sql_resultados = "
-            SELECT 
-                e.id as estudiante_id,
-                e.nombre as estudiante_nombre,
-                e.identificacion,
-                e.email,
-                COUNT(DISTINCT p.id) as total_preguntas,
-                SUM(CASE WHEN or1.opcion_correcta = 1 THEN 1 ELSE 0 END) as respuestas_correctas,
-                MAX(ic.fecha_fin) as fecha_respuesta,
-                ic.puntaje_total
-            FROM 
-                estudiante e
-            JOIN 
-                intento_cuestionario ic ON e.id = ic.id_estudiante
-            JOIN 
-                respuesta_estudiante re ON ic.id = re.id_intento
-            JOIN 
-                preguntas p ON re.id_pregunta = p.id
-            JOIN 
-                opcion_respuesta or1 ON re.id_opcion_seleccionada = or1.id
-            WHERE 
-                ic.id_apertura = :apertura_id
-                AND ic.completado = 1
-            GROUP BY 
-                e.id, e.nombre, e.identificacion, e.email, ic.puntaje_total
-            ORDER BY 
-                respuestas_correctas DESC, e.nombre
-        ";
+        $sql_resultados = "SELECT 
+                                e.id as estudiante_id,
+                                e.nombre as estudiante_nombre,
+                                e.identificacion,
+                                e.email,
+                                COUNT(DISTINCT p.id) as total_preguntas,
+                                SUM(CASE WHEN or1.opcion_correcta = 1 THEN 1 ELSE 0 END) as respuestas_correctas,
+                                MAX(ic.fecha_fin) as fecha_respuesta,
+                                ic.puntaje_total
+                            FROM 
+                                estudiante e
+                            JOIN 
+                                intento_cuestionario ic ON e.id = ic.id_estudiante
+                            JOIN 
+                                respuesta_estudiante re ON ic.id = re.id_intento
+                            JOIN 
+                                preguntas p ON re.id_pregunta = p.id
+                            JOIN 
+                                opcion_respuesta or1 ON re.id_opcion_seleccionada = or1.id
+                            WHERE 
+                                ic.id_apertura = :apertura_id
+                                AND ic.completado = 1
+                            GROUP BY 
+                                e.id, e.nombre, e.identificacion, e.email, ic.puntaje_total
+                            ORDER BY 
+                                respuestas_correctas DESC, e.nombre";
         
         $stmt_resultados = $db->prepare($sql_resultados);
         $stmt_resultados->bindParam(':apertura_id', $apertura_id, PDO::PARAM_INT);

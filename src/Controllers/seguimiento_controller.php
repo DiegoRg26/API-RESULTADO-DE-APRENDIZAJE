@@ -74,44 +74,44 @@ class seguimiento_controller extends BaseController{
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
             $db = $this->container->get('db');
             $query_estudiantes = "SELECT 
-                                    e.id,
-                                    e.nombre,
-                                    e.email,
-                                    e.identificacion,
-                                    ic.fecha_fin as fecha_respuesta,
-                                    CASE WHEN ic.completado = 1 THEN 1 ELSE 0 END as completado,
-                                    (SELECT COUNT(*) FROM preguntas WHERE id_cuestionario = c.id) as total_preguntas,
-                                    (SELECT COUNT(*) FROM respuesta_estudiante re2 
-                                    JOIN opcion_respuesta op ON re2.id_opcion_seleccionada = op.id 
-                                    JOIN intento_cuestionario ic2 ON re2.id_intento = ic2.id
-                                    WHERE ic2.id_apertura = a.id 
-                                    AND ic2.id_estudiante = e.id 
-                                    AND op.opcion_correcta = 1) as respuestas_correctas,
-                                    (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id) as puntaje_total,
-                                    ic.puntaje_total as puntaje_obtenido,
-                                    CASE 
-                                        WHEN (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id) > 0 
-                                        THEN ROUND((ic.puntaje_total / (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id)) * 100)
-                                        ELSE 0
-                                    END as porcentaje
-                                FROM 
-                                    estudiante e
-                                JOIN 
-                                    asignacion asig ON e.id = asig.id_estudiante
-                                JOIN 
-                                    apertura a ON asig.id_apertura = a.id
-                                JOIN 
-                                    relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
-                                JOIN 
-                                    cuestionario c ON rcp.id_cuestionario = c.id
-                                LEFT JOIN 
-                                    intento_cuestionario ic ON ic.id_estudiante = e.id AND ic.id_apertura = a.id AND ic.completado = 1
-                                WHERE 
-                                    a.id = :apertura_id
-                                GROUP BY 
-                                    e.id
-                                ORDER BY 
-                                    e.nombre ASC";
+                                        e.id,
+                                        e.nombre,
+                                        e.email,
+                                        e.identificacion,
+                                        ic.fecha_fin as fecha_respuesta,
+                                        CASE WHEN ic.completado = 1 THEN 1 ELSE 0 END as completado,
+                                        (SELECT COUNT(*) FROM preguntas WHERE id_cuestionario = c.id) as total_preguntas,
+                                        (SELECT COUNT(*) FROM respuesta_estudiante re2 
+                                        JOIN opcion_respuesta op ON re2.id_opcion_seleccionada = op.id 
+                                        JOIN intento_cuestionario ic2 ON re2.id_intento = ic2.id
+                                        WHERE ic2.id_apertura = a.id 
+                                        AND ic2.id_estudiante = e.id 
+                                        AND op.opcion_correcta = 1) as respuestas_correctas,
+                                        (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id) as puntaje_total,
+                                        ic.puntaje_total as puntaje_obtenido,
+                                        CASE 
+                                            WHEN (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id) > 0 
+                                            THEN ROUND((ic.puntaje_total / (SELECT SUM(peso_pregunta) FROM preguntas WHERE id_cuestionario = c.id)) * 100)
+                                            ELSE 0
+                                        END as porcentaje
+                                    FROM 
+                                        estudiante e
+                                    JOIN 
+                                        asignacion asig ON e.id = asig.id_estudiante
+                                    JOIN 
+                                        apertura a ON asig.id_apertura = a.id
+                                    JOIN 
+                                        relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                    JOIN 
+                                        cuestionario c ON rcp.id_cuestionario = c.id
+                                    LEFT JOIN 
+                                        intento_cuestionario ic ON ic.id_estudiante = e.id AND ic.id_apertura = a.id AND ic.completado = 1
+                                    WHERE 
+                                        a.id = :apertura_id
+                                    GROUP BY 
+                                        e.id
+                                    ORDER BY 
+                                        e.nombre ASC";
             $stmt = $db->prepare($query_estudiantes);
             $stmt->bindParam(':apertura_id', $apertura_id);
             $stmt->execute();
@@ -133,40 +133,40 @@ class seguimiento_controller extends BaseController{
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
             $query_seguimiento = "SELECT 
-        a.id as apertura_id,
-        c.id as cuestionario_id,
-        c.titulo,
-        c.descripcion,
-        p.nombre as periodo_nombre,
-        p.fecha_inicio,
-        p.fecha_fin,
-        prog.nombre as programa_nombre,
-        COUNT(DISTINCT asig.id_estudiante) as total_estudiantes_asignados,
-        COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_completados
-    FROM 
-        apertura a
-    JOIN 
-        relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
-    JOIN 
-        cuestionario c ON rcp.id_cuestionario = c.id
-    JOIN 
-        periodo p ON a.id_periodo = p.id
-    JOIN 
-        programa prog ON rcp.id_programa = prog.id
-    JOIN 
-        asignacion asig ON a.id = asig.id_apertura
-    LEFT JOIN (
-        SELECT DISTINCT id_estudiante, id_apertura 
-        FROM intento_cuestionario
-        WHERE completado = 1
-    ) ic ON ic.id_estudiante = asig.id_estudiante AND ic.id_apertura = a.id
-    WHERE 
-        rcp.activo = 1
-        AND rcp.id_docente = :usuario_id
-    GROUP BY 
-        a.id, c.id
-    ORDER BY 
-        p.fecha_inicio DESC, c.titulo ASC";
+                                    a.id as apertura_id,
+                                    c.id as cuestionario_id,
+                                    c.titulo,
+                                    c.descripcion,
+                                    p.nombre as periodo_nombre,
+                                    p.fecha_inicio,
+                                    p.fecha_fin,
+                                    prog.nombre as programa_nombre,
+                                    COUNT(DISTINCT asig.id_estudiante) as total_estudiantes_asignados,
+                                    COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_completados
+                                FROM 
+                                    apertura a
+                                JOIN 
+                                    relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                JOIN 
+                                    cuestionario c ON rcp.id_cuestionario = c.id
+                                JOIN 
+                                    periodo p ON a.id_periodo = p.id
+                                JOIN 
+                                    programa prog ON rcp.id_programa = prog.id
+                                JOIN 
+                                    asignacion asig ON a.id = asig.id_apertura
+                                LEFT JOIN (
+                                    SELECT DISTINCT id_estudiante, id_apertura 
+                                    FROM intento_cuestionario
+                                    WHERE completado = 1
+                                ) ic ON ic.id_estudiante = asig.id_estudiante AND ic.id_apertura = a.id
+                                WHERE 
+                                    rcp.activo = 1
+                                    AND rcp.id_docente = :usuario_id
+                                GROUP BY 
+                                    a.id, c.id
+                                ORDER BY 
+                                    p.fecha_inicio DESC, c.titulo ASC";
         $stmt = $db->prepare($query_seguimiento);
         $stmt->bindParam(':usuario_id', $user_id);
         $stmt->execute();

@@ -210,4 +210,53 @@ class resultado_Controller extends BaseController{
             }
         }
     }
+
+    public function obtResulEstudiantes(Request $request, Response $response, array $args): Response{
+        // Obtener resultados de los estudiantes para esta apertura -> usado para la vista de resultados por parte del docente
+        $db = null;
+        $stmt = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, "No se proporciono un token valido", 401);}
+            $db = $this->container->get('db');
+            $apertura_id = $args['apertura_id'];
+            if(!$apertura_id){return $this->errorResponse($response, "No se proporciono un apertura valido", 400);}
+            $query_resultados = "SELECT 
+                                e.id as estudiante_id,
+                                e.nombre as estudiante_nombre,
+                                e.identificacion,
+                                e.email,
+                                COUNT(DISTINCT p.id) as total_preguntas,
+                                SUM(CASE WHEN or1.opcion_correcta = 1 THEN 1 ELSE 0 END) as respuestas_correctas,
+                                MAX(ic.fecha_fin) as fecha_respuesta,
+                                ic.puntaje_total
+                            FROM 
+                                estudiante e
+                            JOIN 
+                                intento_cuestionario ic ON e.id = ic.id_estudiante
+                            JOIN 
+                                respuesta_estudiante re ON ic.id = re.id_intento
+                            JOIN 
+                                preguntas p ON re.id_pregunta = p.id
+                            JOIN 
+                                opcion_respuesta or1 ON re.id_opcion_seleccionada = or1.id
+                            WHERE 
+                                ic.id_apertura = :apertura_id
+                                AND ic.completado = 1
+                            GROUP BY 
+                                e.id, e.nombre, e.identificacion, e.email, ic.puntaje_total
+                            ORDER BY 
+                                respuestas_correctas DESC, e.nombre";
+            $stmt = $db->prepare($query_resultados);
+            $stmt->bindParam(":apertura_id", $apertura_id);
+            $stmt->execute();
+            $resultados_estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $this->successResponse($response, "Resultados obtenidos correctamente: ", $resultados_estudiantes);
+        }catch(Exception $e){
+            return $this->errorResponse($response, "Error al obtener los resultados: " . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){$db = null;}
+            if($stmt !== null){$stmt = null;}
+        }
+    }
 }
