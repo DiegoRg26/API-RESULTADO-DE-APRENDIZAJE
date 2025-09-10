@@ -8,6 +8,9 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     
     // Obtener cuestionarios abiertos con estado
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
+
+    // Obtener estado de un cuestionario (progreso guardado)
+    $subgroup->get('/resolver/estado', 'App\Controllers\resolver_controller:getEstado');
     
     //Obtener informacion de un cuestionario
     $subgroup->get('/{cuestionario_id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');

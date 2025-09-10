@@ -441,91 +441,158 @@ class resolver_controller extends BaseController
 
     public function updateEstado(Request $request, Response $response, array $args): Response{
         $db = null;
+        $stmt_select = null;
+        $stmt_insert = null;
+        $stmt_update = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+
+            $db = $this->container->get('db');
+            $inputData = $this->getJsonInput($request);
+
+            // Campos base del payload
+            // $cuestionario_id = isset($inputData['cuestionario_id']) ? (int)$inputData['cuestionario_id'] : 0;
+
+            if(!isset($inputData['cuestionario_id'])){
+                return $this->errorResponse($response, 'El campo cuestionario_id es obligatorio', 400);
+            }
+
+            $cuestionario_id = $inputData['cuestionario_id'];
+            $fecha_realizado = $inputData['fecha_realizado'];
+            $tiempo_total = $inputData['tiempo_total'];
+            $tiempo_guardado = $inputData['tiempo_guardado'];
+            $pregunta_opcion_guardado = $inputData['pregunta_opcion_guardado'];
+            // Asegurar formato JSON para almacenamiento (la columna puede tener restricción JSON)
+            if (is_array($pregunta_opcion_guardado) || is_object($pregunta_opcion_guardado)) {
+                $pregunta_opcion_guardado = json_encode($pregunta_opcion_guardado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            // Validación: si no es string JSON válido, error
+            if (!is_string($pregunta_opcion_guardado) || (json_decode($pregunta_opcion_guardado) === null && json_last_error() !== JSON_ERROR_NONE)) {
+                return $this->errorResponse($response, 'El campo pregunta_opcion_guardado debe ser JSON válido', 400);
+            }
+            // fecha_inicio opcional: si no viene, derivarla de fecha_realizado (YYYY-MM-DD)
+            $fecha_inicio = isset($inputData['fecha_inicio']) && !empty($inputData['fecha_inicio'])
+                ? $inputData['fecha_inicio']
+                : substr($fecha_realizado, 0, 10);
+            if (!$fecha_inicio) { $fecha_inicio = date('Y-m-d'); }
+            // Buscar progreso existente por combinación lógica (estudiante, cuestionario, fecha_inicio)
+            $query_select = "SELECT id
+                            FROM progreso_cuestionarios_intentos
+                            WHERE estudiante_id = :estudiante_id
+                                AND cuestionario_id = :cuestionario_id
+                                AND fecha_inicio = :fecha_inicio";
+            $stmt = $db->prepare($query_select);
+            $stmt->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(':cuestionario_id', $cuestionario_id, PDO::PARAM_INT);
+            $stmt->bindParam(':fecha_inicio', $fecha_inicio);
+            $stmt->execute();
+            $progreso = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$progreso){
+                // INSERT con columnas completas
+                $query_insert = "INSERT INTO progreso_cuestionarios_intentos 
+                                (estudiante_id, cuestionario_id, tiempo_total, tiempo_guardado, pregunta_opcion_guardado, fecha_realizado, fecha_inicio) 
+                                VALUES (:estudiante_id, :cuestionario_id, :tiempo_total, :tiempo_guardado, :pregunta_opcion_guardado, :fecha_realizado, :fecha_inicio)";
+                $stmt_insert = $db->prepare($query_insert);
+                $stmt_insert->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
+                $stmt_insert->bindParam(':cuestionario_id', $cuestionario_id, PDO::PARAM_INT);
+                $stmt_insert->bindParam(':tiempo_total', $tiempo_total);
+                $stmt_insert->bindParam(':tiempo_guardado', $tiempo_guardado);
+                $stmt_insert->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado, PDO::PARAM_STR);
+                $stmt_insert->bindParam(':fecha_realizado', $fecha_realizado);
+                $stmt_insert->bindParam(':fecha_inicio', $fecha_inicio);
+                $stmt_insert->execute();
+                return $this->successResponse($response, 'Progreso guardado exitosamente');
+            }else{
+                // UPDATE por combinación (estudiante, cuestionario, fecha_inicio)
+                $query_update = "UPDATE progreso_cuestionarios_intentos
+                                SET tiempo_total = :tiempo_total,
+                                    tiempo_guardado = :tiempo_guardado,
+                                    pregunta_opcion_guardado = :pregunta_opcion_guardado,
+                                    fecha_realizado = :fecha_realizado
+                                WHERE estudiante_id = :estudiante_id
+                                AND cuestionario_id = :cuestionario_id
+                                AND fecha_inicio = :fecha_inicio";
+                $stmt_update = $db->prepare($query_update);
+                $stmt_update->bindParam(':tiempo_total', $tiempo_total);
+                $stmt_update->bindParam(':tiempo_guardado', $tiempo_guardado);
+                $stmt_update->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado, PDO::PARAM_STR);
+                $stmt_update->bindParam(':fecha_realizado', $fecha_realizado);
+                $stmt_update->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
+                $stmt_update->bindParam(':cuestionario_id', $cuestionario_id, PDO::PARAM_INT);
+                $stmt_update->bindParam(':fecha_inicio', $fecha_inicio);
+                $stmt_update->execute();
+                return $this->successResponse($response,'Progreso actualizado exitosamente');
+            }
+        }catch(Exception $e){
+            return $this->errorResponse($response,$e->getMessage(),500);
+        }finally{
+            if($stmt_select !== null){$stmt_select = null;}
+            if($stmt_insert !== null){$stmt_insert = null;}
+            if($stmt_update !== null){$stmt_update = null;}
+            if($db !== null){$db = null;}
+        }
+    }
+
+    public function getEstado(Request $request, Response $response, array $args): Response{
+        $db = null;
         $stmt = null;
         try{
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){
                 return $this->errorResponse($response, 'Usuario no autenticado', 401);
             }
-            
+    
             $db = $this->container->get('db');
             $inputData = $this->getJsonInput($request);
-            
-            // Validar que todos los campos requeridos estén presentes
-            if (!isset($inputData['fecha_realizado'], $inputData['tiempo_total'], 
-                        $inputData['tiempo_guardado'], $inputData['pregunta_opcion_guardado'])) {
-                return $this->errorResponse($response, 'Faltan campos requeridos', 400);
+    
+            // Validar que cuestionario_id sea obligatorio
+            if(!isset($inputData['cuestionario_id'])){
+                return $this->errorResponse($response, 'El campo cuestionario_id es obligatorio', 400);
             }
+    
+            $cuestionario_id = $inputData['cuestionario_id'];
             
-            $fecha_realizado = $inputData['fecha_realizado'];
-            $tiempo_total = $inputData['tiempo_total'];
-            $tiempo_guardado = $inputData['tiempo_guardado'];
-            $pregunta_opcion_guardado = $inputData['pregunta_opcion_guardado'];
-            
-            // Validar que pregunta_opcion_guardado sea JSON válido
-            if (is_array($pregunta_opcion_guardado) || is_object($pregunta_opcion_guardado)) {
-                $pregunta_opcion_guardado = json_encode($pregunta_opcion_guardado);
-            }
-            
-            if (!json_decode($pregunta_opcion_guardado) && json_last_error() !== JSON_ERROR_NONE) {
-                return $this->errorResponse($response, 'El campo pregunta_opcion_guardado debe ser JSON válido', 400);
-            }
-            
-            // Consulta para verificar si ya existe un registro
-            $query_select = "SELECT id FROM progreso_cuestionarios_intentos
-                            WHERE estudiante_id = :estudiante_id 
-                            AND fecha_realizado = :fecha_realizado";
+            // fecha_inicio opcional: si no viene, derivarla de la fecha actual
+            $fecha_inicio = isset($inputData['fecha_inicio']) && !empty($inputData['fecha_inicio'])
+                ? $inputData['fecha_inicio']
+                : date('Y-m-d');
+    
+            // Buscar progreso existente por combinación lógica (estudiante, cuestionario, fecha_inicio)
+            $query_select = "SELECT id, estudiante_id, cuestionario_id, tiempo_total, tiempo_guardado, 
+                                    pregunta_opcion_guardado, fecha_realizado, fecha_inicio
+                            FROM progreso_cuestionarios_intentos
+                            WHERE estudiante_id = :estudiante_id
+                            AND cuestionario_id = :cuestionario_id
+                            AND fecha_inicio = :fecha_inicio";
             
             $stmt = $db->prepare($query_select);
             $stmt->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
-            $stmt->bindParam(':fecha_realizado', $fecha_realizado);
+            $stmt->bindParam(':cuestionario_id', $cuestionario_id, PDO::PARAM_INT);
+            $stmt->bindParam(':fecha_inicio', $fecha_inicio);
             $stmt->execute();
+            
             $progreso = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if(!$progreso){
-                // INSERT: Crear nuevo registro
-                $query_insert = "INSERT INTO progreso_cuestionarios_intentos 
-                                (estudiante_id, tiempo_total, tiempo_guardado, pregunta_opcion_guardado, fecha_realizado) 
-                                VALUES (:estudiante_id, :tiempo_total, :tiempo_guardado, :pregunta_opcion_guardado, :fecha_realizado)";
-                
-                $stmt = $db->prepare($query_insert);
-                $stmt->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
-                $stmt->bindParam(':tiempo_total', $tiempo_total);
-                $stmt->bindParam(':tiempo_guardado', $tiempo_guardado);
-                $stmt->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado);
-                $stmt->bindParam(':fecha_realizado', $fecha_realizado);
-                $stmt->execute();
-                
-                return $this->successResponse($response, 'Progreso guardado exitosamente');
-            } else {
-                // UPDATE: Actualizar registro existente
-                $query_update = "UPDATE progreso_cuestionarios_intentos
-                                SET tiempo_total = :tiempo_total,
-                                    tiempo_guardado = :tiempo_guardado,
-                                    pregunta_opcion_guardado = :pregunta_opcion_guardado
-                                WHERE estudiante_id = :estudiante_id 
-                                AND fecha_realizado = :fecha_realizado";
-                
-                $stmt = $db->prepare($query_update);
-                $stmt->bindParam(':tiempo_total', $tiempo_total);
-                $stmt->bindParam(':tiempo_guardado', $tiempo_guardado);
-                $stmt->bindParam(':pregunta_opcion_guardado', $pregunta_opcion_guardado);
-                $stmt->bindParam(':estudiante_id', $user_id, PDO::PARAM_INT);
-                $stmt->bindParam(':fecha_realizado', $fecha_realizado);
-                $stmt->execute();
-                
-                return $this->successResponse($response, 'Progreso actualizado exitosamente');
+                return $this->successResponse($response, 'No existen datos', []);
             }
-            
-        } catch(Exception $e) {
+    
+            // Decodificar el JSON de pregunta_opcion_guardado para devolverlo como array/object
+            if(!empty($progreso['pregunta_opcion_guardado'])){
+                $pregunta_opcion_decoded = json_decode($progreso['pregunta_opcion_guardado'], true);
+                if($pregunta_opcion_decoded !== null){
+                    $progreso['pregunta_opcion_guardado'] = $pregunta_opcion_decoded;
+                }
+            }
+    
+            return $this->successResponse($response, 'Datos obtenidos exitosamente', $progreso);
+    
+        }catch(Exception $e){
             return $this->errorResponse($response, $e->getMessage(), 500);
-        } finally {
-            if($stmt !== null) {
-                $stmt = null;
-            }
-            if($db !== null) {
-                $db = null;
-            }
+        }finally{
+            if($stmt !== null){$stmt = null;}
+            if($db !== null){$db = null;}
         }
     }
 }
