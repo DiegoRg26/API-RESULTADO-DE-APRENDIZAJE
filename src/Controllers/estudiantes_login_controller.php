@@ -43,6 +43,7 @@ class estudiantes_login_controller extends BaseController
                 return $this->errorResponse($response, 'Datos JSON inválidos', 400);
             }
 
+            
             // Validar campos requeridos
             $validation = $this->validateStudentLoginData($inputData);
             if (!$validation['valid']) {
