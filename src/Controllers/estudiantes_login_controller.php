@@ -54,6 +54,7 @@ class estudiantes_login_controller extends BaseController
 
             // Buscar estudiante en base de datos
             $student = $this->findStudentByEmailAndId($db, $email, $identificacion);
+            // print_r($student);
 
             if (!$student) {
                 return $this->errorResponse($response, 'Credenciales incorrectas', 401);
@@ -91,7 +92,12 @@ class estudiantes_login_controller extends BaseController
 
             // Crear nueva sesión
             $sessionResult = $this->createStudentSession($db, $student['id'], $jwtId, $clientInfo);
-
+            
+            // print_r($student);
+            // print_r($jwtId);
+            // print_r($clientInfo);
+            // print_r($sessionResult);
+            
             if (!$sessionResult) {
                 return $this->errorResponse($response, 'Error al crear sesión', 500);
             }
@@ -259,20 +265,36 @@ class estudiantes_login_controller extends BaseController
     private function findStudentByEmailAndId(PDO $db, string $email, string $identificacion)
     {
         try {
-            $query = "SELECT e.id, e.email, e.identificacion, e.nombre, e.id_programa, e.estado,
-                            p.nombre as programa_nombre, c.nombre as campus_nombre
-                        FROM estudiante e 
-                        INNER JOIN programa p ON e.id_programa = p.id
-                        INNER JOIN campus c ON p.id_campus = c.id
-                        WHERE e.email = :email AND e.identificacion = :identificacion
-                        LIMIT 1";
+            $query = "SELECT e.id, e.email, e.identificacion, e.nombre, e.estado,
+                        GROUP_CONCAT(DISTINCT p.id) AS programas_ids,
+                        GROUP_CONCAT(DISTINCT p.nombre) AS programas_nombres,
+                        GROUP_CONCAT(DISTINCT c.nombre) AS campus_nombres
+                    FROM estudiante e 
+                    LEFT JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
+                    LEFT JOIN programa p ON rpe.programa_id = p.id
+                    LEFT JOIN campus c ON p.id_campus = c.id
+                    WHERE e.email = :email AND e.identificacion = :identificacion
+                    GROUP BY e.id, e.email, e.identificacion, e.nombre, e.estado
+                    LIMIT 1";
 
             $stmt = $db->prepare($query);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
             $stmt->execute();
 
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result) {
+                // Convertir las cadenas de IDs y nombres de programas a arreglos
+                $result['programas_ids'] = !empty($result['programas_ids']) ? explode(',', $result['programas_ids']) : [];
+                $result['programas_nombres'] = !empty($result['programas_nombres']) ? explode(',', $result['programas_nombres']) : [];
+                // Si hay campus, también lo convertimos a arreglo
+                if (isset($result['campus_nombres'])) {
+                    $result['campus_nombres'] = !empty($result['campus_nombres']) ? explode(',', $result['campus_nombres']) : [];
+                }
+            }
+            
+            return $result;
         } catch (Exception $e) {
             error_log("Error en findStudentByEmailAndId: " . $e->getMessage());
             return false;
@@ -336,6 +358,7 @@ class estudiantes_login_controller extends BaseController
             return $stmt->execute();
         } catch (Exception $e) {
             error_log("Error en createStudentSession: " . $e->getMessage());
+            print_r($e->getMessage());
             return false;
         }
     }
@@ -437,9 +460,9 @@ class estudiantes_login_controller extends BaseController
             'nombre' => $student['nombre'],
             'email' => $student['email'],
             'identificacion' => $student['identificacion'],
-            'programa_id' => (int) $student['id_programa'],
-            'programa_nombre' => $student['programa_nombre'],
-            'campus_nombre' => $student['campus_nombre']
+            'programas_ids' => (int) $student['programas_ids'],
+            'programas_nombres' => $student['programas_nombres'],
+            'campus_nombres' => $student['campus_nombres']
         ];
 
         return JWT::encode($payload, $this->jwtSecret, 'HS256');
@@ -476,9 +499,9 @@ class estudiantes_login_controller extends BaseController
             'nombre' => $student['nombre'],
             'email' => $student['email'],
             'identificacion' => $student['identificacion'],
-            'programa_id' => (int) $student['id_programa'],
-            'programa_nombre' => $student['programa_nombre'],
-            'campus_nombre' => $student['campus_nombre'],
+            'programas_ids' => $student['programas_ids'],
+            'programas_nombres' => $student['programas_nombres'],
+            'campus_nombres' => $student['campus_nombres'],
             'estado' => (bool) $student['estado']
         ];
     }

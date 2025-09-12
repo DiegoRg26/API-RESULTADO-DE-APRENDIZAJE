@@ -32,16 +32,18 @@ class estudiante_controller extends BaseController{
             if(!$programa_id){
                 $sql_get_estudiantes = "SELECT e.id, e.nombre, e.email, e.identificacion, p.nombre as programa_nombre
                                         FROM estudiante e
-                                        JOIN programa p ON e.id_programa = p.id
+                                        JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
+                                        JOIN programa p ON rpe.programa_id = p.id
                                         WHERE e.estado = 1
                                         ORDER BY e.nombre";
                     $stmt = $db->prepare($sql_get_estudiantes);
                     $stmt->execute();
                 }else{
-                    $sql_get_estudiantes = "SELECT e.id, e.nombre, e.email, e.identificacion, p.nombre as programa_nombre
+                    $sql_get_estudiantes = "SELECT e.id, e.nombre, e.email, e.identificacion, p.nombre as programa_nombre, p.id as programa_id
                                             FROM estudiante e
-                                            JOIN programa p ON e.id_programa = p.id
-                                            WHERE e.id_programa = :programa_id AND e.estado = 1
+                                            JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
+                                            JOIN programa p ON rpe.programa_id = p.id
+                                            WHERE rpe.programa_id = :programa_id AND e.estado = 1
                                             ORDER BY e.nombre";
                     $stmt = $db->prepare($sql_get_estudiantes);
                     $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
@@ -343,8 +345,8 @@ class estudiante_controller extends BaseController{
                         a.id AS asignacion_id,
                         ap.id AS apertura_id
                     FROM intento_cuestionario ic
-                    INNER JOIN asignacion a ON ic.id_estudiante = a.id_estudiante AND ic.id_apertura = a.id_apertura
-                    INNER JOIN apertura ap ON a.id_apertura = ap.id
+                    INNER JOIN apertura ap ON ic.id_apertura = ap.id
+                    LEFT JOIN asignacion a ON a.id_estudiante = ic.id_estudiante AND a.id_apertura = ic.id_apertura
                     INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
                     INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
                     INNER JOIN periodo p ON ap.id_periodo = p.id
