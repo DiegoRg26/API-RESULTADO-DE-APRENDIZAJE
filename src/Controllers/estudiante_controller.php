@@ -98,24 +98,28 @@ class estudiante_controller extends BaseController{
                 return $this->errorResponse($response, 'El programa es requerido', 400);
             }
             //Valida si el estudiante ya existe
-            $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion AND id_programa = :programa_id";
+            $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion";
             $stmt = $db->prepare($sql_verificar);
             $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
-            $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            // $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
             $stmt->execute();
             if($stmt->rowCount() > 0){
                 return $this->errorResponse($response, 'El estudiante ya existe', 400);
             }
             //Inserta el estudiante
             $db->beginTransaction();
-            $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion, id_programa) VALUES (:nombre, :email, :identificacion, :programa_id)";
+            $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion) VALUES (:nombre, :email, :identificacion)";
             $stmt = $db->prepare($sql_insertar);
             $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
-            $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
             if($stmt->execute()){
                 $estudiante_id = $db->lastInsertId();
+                $sql_insertar_relacion = "INSERT INTO relacion_estudiante_programas (estudiante_id, programa_id) VALUES (:estudiante_id, :programa_id)";
+                $stmt = $db->prepare($sql_insertar_relacion);
+                $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+                $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                if($stmt->execute()){
                 $db->commit();
                 return $this->successResponse($response, 'Estudiante agregado correctamente', [
                     'estudiante' => [
@@ -123,12 +127,15 @@ class estudiante_controller extends BaseController{
                         'nombre' => $nombre,
                         'email' => $email,
                         'identificacion' => $identificacion,
-                        'programa_id' => $programa_id
                         ]
                     ]);
                 }else{
                     $db->rollBack();
-                    return $this->errorResponse($response, 'Error al agregar el estudiante', 500);
+                    return $this->errorResponse($response, 'Error al agregar el programa al estudiante', 500);
+                }
+            }else{
+                $db->rollBack();
+                return $this->errorResponse($response, 'Error al agregar el estudiante', 500);
             }
         }catch(Exception $e){
             $db->rollBack();
