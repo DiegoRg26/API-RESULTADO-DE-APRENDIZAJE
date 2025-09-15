@@ -79,16 +79,19 @@ class estudiante_controller extends BaseController{
         try{
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            
             $inputData = $this->getJsonInput($request);
             $db = $this->container->get('db');
+            
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            
             $nombre = $this->sanitizeInput($inputData['nombre']);
             $email = $this->sanitizeInput($inputData['email']);
             $identificacion = $this->sanitizeInput($inputData['identificacion']);
-
+    
             $userData = $this->getUserDataFromToken($request);
             $programa_id = $userData['programa_id'];
-
+    
             if(!$programa_id){
                 $programa_id = $inputData['programa_id'];
             }
@@ -97,48 +100,101 @@ class estudiante_controller extends BaseController{
             if(!$programa_id){
                 return $this->errorResponse($response, 'El programa es requerido', 400);
             }
-            //Valida si el estudiante ya existe
-            $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion";
-            $stmt = $db->prepare($sql_verificar);
-            $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
-            // $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
-            $stmt->execute();
-            if($stmt->rowCount() > 0){
-                return $this->errorResponse($response, 'El estudiante ya existe', 400);
-            }
-            //Inserta el estudiante
+            
             $db->beginTransaction();
-            $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion) VALUES (:nombre, :email, :identificacion)";
-            $stmt = $db->prepare($sql_insertar);
-            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+            
+            // Verificar si el estudiante ya existe por identificación
+            $sql_verificar_estudiante = "SELECT id FROM estudiante WHERE identificacion = :identificacion";
+            $stmt = $db->prepare($sql_verificar_estudiante);
             $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
-            if($stmt->execute()){
-                $estudiante_id = $db->lastInsertId();
-                $sql_insertar_relacion = "INSERT INTO relacion_estudiante_programas (estudiante_id, programa_id) VALUES (:estudiante_id, :programa_id)";
+            $stmt->execute();
+            
+            $estudiante_existente = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if($estudiante_existente){
+                $estudiante_id = $estudiante_existente['id'];
+                
+                // Verificar si ya existe la relación estudiante-programa
+                $sql_verificar_relacion = "SELECT id FROM relacion_programa_estudiante 
+                                            WHERE estudiante_id = :estudiante_id AND programa_id = :programa_id";
+                $stmt = $db->prepare($sql_verificar_relacion);
+                $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+                $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                $stmt->execute();
+                
+                if($stmt->rowCount() > 0){
+                    $db->rollBack();
+                    return $this->errorResponse($response, 'El estudiante ya está asociado a este programa', 400);
+                }
+                
+                // Insertar nueva relación estudiante-programa
+                $sql_insertar_relacion = "INSERT INTO relacion_programa_estudiante (estudiante_id, programa_id) 
+                                        VALUES (:estudiante_id, :programa_id)";
                 $stmt = $db->prepare($sql_insertar_relacion);
                 $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
                 $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                
                 if($stmt->execute()){
-                $db->commit();
-                return $this->successResponse($response, 'Estudiante agregado correctamente', [
-                    'estudiante' => [
-                        'id' => $estudiante_id,
-                        'nombre' => $nombre,
-                        'email' => $email,
-                        'identificacion' => $identificacion,
+                    $db->commit();
+                    return $this->successResponse($response, 'Estudiante asociado al programa correctamente', [
+                        'estudiante' => [
+                            'id' => $estudiante_id,
+                            'nombre' => $nombre,
+                            'email' => $email,
+                            'identificacion' => $identificacion,
+                            'programa_id' => $programa_id,
+                            'accion' => 'asociado_a_programa'
                         ]
                     ]);
                 }else{
                     $db->rollBack();
-                    return $this->errorResponse($response, 'Error al agregar el programa al estudiante', 500);
+                    return $this->errorResponse($response, 'Error al asociar el estudiante al programa', 500);
                 }
             }else{
-                $db->rollBack();
-                return $this->errorResponse($response, 'Error al agregar el estudiante', 500);
+                // El estudiante no existe, crear nuevo estudiante
+                $sql_insertar_estudiante = "INSERT INTO estudiante (nombre, email, identificacion) 
+                                            VALUES (:nombre, :email, :identificacion)";
+                $stmt = $db->prepare($sql_insertar_estudiante);
+                $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+                $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
+                
+                if($stmt->execute()){
+                    $estudiante_id = $db->lastInsertId();
+                    
+                    // Crear la relación estudiante-programa
+                    $sql_insertar_relacion = "INSERT INTO relacion_programa_estudiante (estudiante_id, programa_id) 
+                                            VALUES (:estudiante_id, :programa_id)";
+                    $stmt = $db->prepare($sql_insertar_relacion);
+                    $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+                    $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                    
+                    if($stmt->execute()){
+                        $db->commit();
+                        return $this->successResponse($response, 'Estudiante creado y asociado al programa correctamente', [
+                            'estudiante' => [
+                                'id' => $estudiante_id,
+                                'nombre' => $nombre,
+                                'email' => $email,
+                                'identificacion' => $identificacion,
+                                'programa_id' => $programa_id,
+                                'accion' => 'creado_y_asociado'
+                            ]
+                        ]);
+                    }else{
+                        $db->rollBack();
+                        return $this->errorResponse($response, 'Error al asociar el estudiante al programa', 500);
+                    }
+                }else{
+                    $db->rollBack();
+                    return $this->errorResponse($response, 'Error al crear el estudiante', 500);
+                }
             }
+            
         }catch(Exception $e){
-            $db->rollBack();
+            if($db !== null){
+                $db->rollBack();
+            }
             return $this->errorResponse($response, 'Error al agregar el estudiante: ' . $e->getMessage(), 500);
         }finally{
             if($stmt !== null){
