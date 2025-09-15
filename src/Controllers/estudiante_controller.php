@@ -585,42 +585,70 @@ class estudiante_controller extends BaseController{
                     $identificacion = $this->sanitizeInput($estudiante['identificacion']);
 
                     // Verificar si el estudiante ya existe
-                    $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion AND id_programa = :programa_id";
+                    $sql_verificar = "SELECT id FROM estudiante WHERE identificacion = :identificacion";
                     $stmt = $db->prepare($sql_verificar);
                     $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
-                    $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
                     $stmt->execute();
 
-                    if ($stmt->rowCount() > 0) {
-                        $resultados['fallidos'][] = [
-                            'indice' => $index,
-                            'error' => 'El estudiante con esta identificación ya existe en el programa',
-                            'datos' => $estudiante
-                        ];
-                        continue;
+                    $estudiante_existente = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $estudiante_id = null;
+
+                    if ($estudiante_existente) {
+                        // El estudiante ya existe, usar su ID
+                        $estudiante_id = $estudiante_existente['id'];
+                        
+                        // Verificar si ya está relacionado con este programa
+                        $sql_verificar_relacion = "SELECT id FROM relacion_programa_estudiante 
+                                                    WHERE estudiante_id = :estudiante_id AND programa_id = :programa_id";
+                        $stmt = $db->prepare($sql_verificar_relacion);
+                        $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+                        $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+                        $stmt->execute();
+
+                        if ($stmt->rowCount() > 0) {
+                            $resultados['fallidos'][] = [
+                                'indice' => $index,
+                                'error' => 'El estudiante ya está asignado a este programa',
+                                'datos' => $estudiante
+                            ];
+                            continue;
+                        }
+                    } else {
+                        // El estudiante no existe, crearlo
+                        $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion) 
+                                        VALUES (:nombre, :email, :identificacion)";
+                        $stmt = $db->prepare($sql_insertar);
+                        $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+                        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                        $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
+
+                        if (!$stmt->execute()) {
+                            throw new Exception('Error al insertar el estudiante');
+                        }
+
+                        $estudiante_id = $db->lastInsertId();
                     }
 
-                    // Insertar el estudiante
-                    $sql_insertar = "INSERT INTO estudiante (nombre, email, identificacion, id_programa) 
-                                    VALUES (:nombre, :email, :identificacion, :programa_id)";
-                    $stmt = $db->prepare($sql_insertar);
-                    $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-                    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-                    $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
+                    // Crear la relación estudiante-programa
+                    $sql_relacion = "INSERT INTO relacion_programa_estudiante (estudiante_id, programa_id) 
+                                    VALUES (:estudiante_id, :programa_id)";
+                    $stmt = $db->prepare($sql_relacion);
+                    $stmt->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
                     $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
 
                     if ($stmt->execute()) {
-                        $estudiante_id = $db->lastInsertId();
                         $resultados['exitosos'][] = [
                             'id' => $estudiante_id,
                             'nombre' => $nombre,
                             'email' => $email,
                             'identificacion' => $identificacion,
-                            'programa_id' => $programa_id
+                            'programa_id' => $programa_id,
+                            'accion' => $estudiante_existente ? 'asignado_programa' : 'creado_y_asignado'
                         ];
                     } else {
-                        throw new Exception('Error al insertar el estudiante');
+                        throw new Exception('Error al crear la relación estudiante-programa');
                     }
+
                 } catch (Exception $e) {
                     $resultados['fallidos'][] = [
                         'indice' => $index,
