@@ -28,29 +28,80 @@ class estudiante_controller extends BaseController{
             //Obtiene los datos del usuario autenticado
             $userData = $this->getUserDataFromToken($request);
             $programa_id = $userData['programa_id'];
+            
             //Valida si el usuario pertenece o no a un programa, en caso de que no, se obtiene todos los estudiantes de todos los programas
             if(!$programa_id){
-                $sql_get_estudiantes = "SELECT e.id, e.nombre, e.email, e.identificacion, p.nombre as programa_nombre
+                // Query para obtener todos los estudiantes con sus programas (agrupados por estudiante)
+                $sql_get_estudiantes = "SELECT 
+                                            e.id, 
+                                            e.nombre, 
+                                            e.email, 
+                                            e.identificacion,
+                                            GROUP_CONCAT(
+                                                CONCAT(p.id, ':', p.nombre) 
+                                                ORDER BY p.nombre 
+                                                SEPARATOR '|'
+                                            ) as programas_info
                                         FROM estudiante e
                                         JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
                                         JOIN programa p ON rpe.programa_id = p.id
                                         WHERE e.estado = 1
+                                        GROUP BY e.id, e.nombre, e.email, e.identificacion
                                         ORDER BY e.nombre";
-                    $stmt = $db->prepare($sql_get_estudiantes);
-                    $stmt->execute();
-                }else{
-                    $sql_get_estudiantes = "SELECT e.id, e.nombre, e.email, e.identificacion, p.nombre as programa_nombre, p.id as programa_id
-                                            FROM estudiante e
-                                            JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
-                                            JOIN programa p ON rpe.programa_id = p.id
-                                            WHERE rpe.programa_id = :programa_id AND e.estado = 1
-                                            ORDER BY e.nombre";
-                    $stmt = $db->prepare($sql_get_estudiantes);
-                    $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
-                }
+                $stmt = $db->prepare($sql_get_estudiantes);
+            }else{
+                // Query para obtener estudiantes de un programa específico con todos sus programas
+                $sql_get_estudiantes = "SELECT DISTINCT
+                                            e.id, 
+                                            e.nombre, 
+                                            e.email, 
+                                            e.identificacion,
+                                            GROUP_CONCAT(
+                                                CONCAT(p2.id, ':', p2.nombre) 
+                                                ORDER BY p2.nombre 
+                                                SEPARATOR '|'
+                                            ) as programas_info
+                                        FROM estudiante e
+                                        JOIN relacion_programa_estudiante rpe ON e.id = rpe.estudiante_id
+                                        JOIN relacion_programa_estudiante rpe2 ON e.id = rpe2.estudiante_id
+                                        JOIN programa p2 ON rpe2.programa_id = p2.id
+                                        WHERE rpe.programa_id = :programa_id AND e.estado = 1
+                                        GROUP BY e.id, e.nombre, e.email, e.identificacion
+                                        ORDER BY e.nombre";
+                $stmt = $db->prepare($sql_get_estudiantes);
+                $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            }
+            
             if($stmt->execute()){
-                $estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                if(count($estudiantes) > 0){
+                $estudiantes_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if(count($estudiantes_raw) > 0){
+                    // Procesar los datos para estructurar los programas
+                    $estudiantes = [];
+                    foreach($estudiantes_raw as $estudiante){
+                        $programas = [];
+                        if(!empty($estudiante['programas_info'])){
+                            $programas_array = explode('|', $estudiante['programas_info']);
+                            foreach($programas_array as $programa_info){
+                                $parts = explode(':', $programa_info, 2);
+                                if(count($parts) == 2){
+                                    $programas[] = [
+                                        'id' => (int)$parts[0],
+                                        'nombre' => $parts[1]
+                                    ];
+                                }
+                            }
+                        }
+                        
+                        $estudiantes[] = [
+                            'id' => (int)$estudiante['id'],
+                            'nombre' => $estudiante['nombre'],
+                            'email' => $estudiante['email'],
+                            'identificacion' => $estudiante['identificacion'],
+                            'programas' => $programas
+                        ];
+                    }
+                    
                     return $this->successResponse($response, 'Estudiantes obtenidos correctamente', [
                         'estudiantes' => $estudiantes,
                         'total' => count($estudiantes)
@@ -338,12 +389,15 @@ class estudiante_controller extends BaseController{
                         p.nombre AS periodo,
                         p.fecha_inicio,
                         p.fecha_fin,
-                        a.id AS asignacion_id
+                        a.id AS asignacion_id,
+                        prog.id AS programa_id,
+                        prog.nombre AS programa_nombre
                     FROM asignacion a
                     INNER JOIN apertura ap ON a.id_apertura = ap.id
                     INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
                     INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
                     INNER JOIN periodo p ON ap.id_periodo = p.id
+                    INNER JOIN programa prog ON rcp.id_programa = prog.id
                     WHERE a.id_estudiante = :estudiante_id
                     AND ap.activo = 1
                     AND p.fecha_inicio <= CURDATE()
@@ -406,13 +460,16 @@ class estudiante_controller extends BaseController{
                         ic.puntaje_total,
                         ic.completado,
                         a.id AS asignacion_id,
-                        ap.id AS apertura_id
+                        ap.id AS apertura_id,
+                        prog.id AS programa_id,
+                        prog.nombre AS programa_nombre
                     FROM intento_cuestionario ic
                     INNER JOIN apertura ap ON ic.id_apertura = ap.id
                     LEFT JOIN asignacion a ON a.id_estudiante = ic.id_estudiante AND a.id_apertura = ic.id_apertura
                     INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
                     INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
                     INNER JOIN periodo p ON ap.id_periodo = p.id
+                    INNER JOIN programa prog ON rcp.id_programa = prog.id
                     WHERE ic.id_estudiante = :estudiante_id
                     AND ic.completado = 1
                     ORDER BY ic.fecha_fin DESC";
@@ -429,7 +486,7 @@ class estudiante_controller extends BaseController{
                         'total' => count($cuestionarios_completados)
                     ]);
                 } else {
-                    return $this->errorResponse($response, 'No se encontraron cuestionarios completados', statusCode: 204);
+                    return $this->errorResponse($response, 'No se encontraron cuestionarios completados', 204);
                 }
             } else {
                 return $this->errorResponse($response, 'Error al obtener los cuestionarios completados', 500);
@@ -467,12 +524,15 @@ class estudiante_controller extends BaseController{
                         p.fecha_inicio,
                         p.fecha_fin,
                         a.id AS asignacion_id,
-                        ap.id AS apertura_id
+                        ap.id AS apertura_id,
+                        prog.id AS programa_id,
+                        prog.nombre AS programa_nombre
                     FROM asignacion a
                     INNER JOIN apertura ap ON a.id_apertura = ap.id
                     INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
                     INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
                     INNER JOIN periodo p ON ap.id_periodo = p.id
+                    INNER JOIN programa prog ON rcp.id_programa = prog.id
                     WHERE a.id_estudiante = :estudiante_id
                     AND ap.activo = 1
                     AND p.fecha_inicio > CURDATE()
@@ -529,12 +589,15 @@ class estudiante_controller extends BaseController{
                         p.fecha_inicio,
                         p.fecha_fin,
                         a.id AS asignacion_id,
-                        ap.id AS apertura_id
+                        ap.id AS apertura_id,
+                        prog.id AS programa_id,
+                        prog.nombre AS programa_nombre
                     FROM asignacion a
                     INNER JOIN apertura ap ON a.id_apertura = ap.id
                     INNER JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
                     INNER JOIN cuestionario c ON rcp.id_cuestionario = c.id
                     INNER JOIN periodo p ON ap.id_periodo = p.id
+                    INNER JOIN programa prog ON rcp.id_programa = prog.id
                     WHERE a.id_estudiante = :estudiante_id
                     AND ap.activo = 1
                     AND p.fecha_fin < CURDATE()

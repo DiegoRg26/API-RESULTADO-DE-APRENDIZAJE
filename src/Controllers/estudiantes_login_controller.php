@@ -151,14 +151,57 @@ class estudiantes_login_controller extends BaseController
             // Actualizar última actividad
             $this->updateSessionActivity($db, $userData['jti']);
 
+            // Normalizar y preparar datos del estudiante desde el token
+            $rol = $userData['rol'] ?? ($userData['rol_user'] ?? null);
+
+            $programasIds = $userData['programas_ids'] ?? [];
+            if (!is_array($programasIds)) {
+                if (is_string($programasIds)) {
+                    $programasIds = strlen($programasIds) ? explode(',', $programasIds) : [];
+                } elseif (is_numeric($programasIds)) {
+                    $programasIds = [(string) $programasIds];
+                } else {
+                    $programasIds = [];
+                }
+            }
+            // Asegurar que sean strings
+            $programasIds = array_map('strval', $programasIds);
+
+            $programasNombres = $userData['programas_nombres'] ?? [];
+            if (!is_array($programasNombres)) {
+                if (is_string($programasNombres)) {
+                    $programasNombres = strlen($programasNombres) ? explode(',', $programasNombres) : [];
+                } else {
+                    $programasNombres = [];
+                }
+            }
+
+            $campusNombres = $userData['campus_nombres'] ?? [];
+            if (!is_array($campusNombres)) {
+                if (is_string($campusNombres)) {
+                    $campusNombres = strlen($campusNombres) ? explode(',', $campusNombres) : [];
+                } else {
+                    $campusNombres = [];
+                }
+            }
+
+            $expiresIn = isset($userData['exp']) ? max(0, $userData['exp'] - time()) : 0;
+            $sessionId = $userData['jti'] ?? null;
+
             return $this->successResponse($response, 'Token válido', [
                 'student' => [
-                    'id' => $userData['user_id'],
-                    'nombre' => $userData['nombre'],
-                    'email' => $userData['email'],
-                    'programa_id' => $userData['programa_id']
+                    'id' => (int) ($userData['user_id'] ?? 0),
+                    'rol' => $rol !== null ? (int) $rol : null,
+                    'nombre' => $userData['nombre'] ?? null,
+                    'email' => $userData['email'] ?? null,
+                    'identificacion' => $userData['identificacion'] ?? null,
+                    'programas_ids' => $programasIds,
+                    'programas_nombres' => $programasNombres,
+                    'campus_nombres' => $campusNombres,
+                    'estado' => true
                 ],
-                'expires_at' => date('Y-m-d H:i:s', $userData['exp'])
+                'expires_in' => $expiresIn,
+                'session_id' => $sessionId
             ]);
         } catch (Exception $e) {
             error_log("Error en verifyStudentToken: " . $e->getMessage());
