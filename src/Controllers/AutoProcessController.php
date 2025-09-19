@@ -58,7 +58,7 @@ class AutoProcessController extends BaseController
                     a.id_periodo,
                     a.id_relacion_cuestionario_programa,
                     rcp.id_cuestionario,
-                    p.fecha_fin
+                    per.fecha_fin
                 FROM
                     apertura a
                 JOIN
@@ -180,7 +180,7 @@ class AutoProcessController extends BaseController
             }
 
             error_log("Error en processExpiredPeriods: " . $e->getMessage());
-            return $this->errorResponse($response, 'Error interno del servidor al procesar períodos expirados', 500);
+            return $this->errorResponse($response, 'Error interno del servidor al procesar períodos expirados' . $e->getMessage(), 500);
         } finally {
             if ($stmt_aperturas !== null) {
                 $stmt_aperturas = null;

@@ -238,7 +238,7 @@ class resultado_Controller extends BaseController{
                                 respuesta_estudiante re ON ic.id = re.id_intento
                             JOIN 
                                 preguntas p ON re.id_pregunta = p.id
-                            JOIN 
+                            LEFT JOIN 
                                 opcion_respuesta or1 ON re.id_opcion_seleccionada = or1.id
                             WHERE 
                                 ic.id_apertura = :apertura_id
