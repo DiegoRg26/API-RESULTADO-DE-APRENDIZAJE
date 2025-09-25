@@ -47,6 +47,11 @@ class BaseController{
 		return htmlspecialchars(strip_tags(trim($input)));
 	}
 
+    public function sanitizeHtml(string $input): string{
+        $allowedTags = '<p><strong><b><em><i><u><h1><h2><h3><ul><ol><li><br><a><img>';
+        return strip_tags(trim($input), $allowedTags);
+    }
+
     /**
      * Genera respuesta de éxito en formato JSON
      * 

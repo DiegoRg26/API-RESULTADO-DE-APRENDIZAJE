@@ -68,9 +68,6 @@ class login_controller extends BaseController
                 return $this->errorResponse($response, 'Credenciales incorrectas', 401);
             
             }
-            // agregar rol al usuario
-            $user['rol'] = 1;
-            
             // Verificar contraseña
             if (!$this->verifyPassword($password, $user['password'])) {
                 return $this->errorResponse($response, 'Credenciales incorrectas', 401);
@@ -244,7 +241,7 @@ class login_controller extends BaseController
      */
     private function findUserByEmail(PDO $db, string $email){
         try {
-            $query = "SELECT id, nombre, email, identificacion, password, programa_id, fecha_registro 
+            $query = "SELECT id, nombre, email, identificacion, password, programa_id, fecha_registro, rol 
                         FROM docente 
                         WHERE email = :email 
                         LIMIT 1";

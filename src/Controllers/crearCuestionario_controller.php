@@ -48,7 +48,7 @@ class crearCuestionario_controller extends BaseController{
             }
             $db->beginTransaction();
             $titulo = $this->sanitizeInput($inputData['titulo']);
-            $descripcion = $this->sanitizeInput($inputData['descripcion']);
+            $descripcion = $this->sanitizeHtml($inputData['descripcion']);
             $tiempo_limite = $inputData['tiempo_limite'];
             // $tiempo_limite = $tiempo_limite * 60;
             $docenteData = $this->getUserDataFromToken($request);
