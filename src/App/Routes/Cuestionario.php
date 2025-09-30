@@ -17,6 +17,9 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     
     // Obtener programas disponibles para crear cuestionario
     // $subgroup->post('/programas-disponibles', 'App\Controllers\crearCuestionario_controller:getProgramasDisponibles');
+
+    // Crear niveles
+    $subgroup->post('/create/nivel', 'App\Controllers\raNiveles_controller:createRa');
     
     // Obtener estado de un cuestionario (progreso guardado)
     $subgroup->post('/resolver/estado', 'App\Controllers\resolver_controller:getEstado');
