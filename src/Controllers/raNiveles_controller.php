@@ -5,6 +5,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Controllers\BaseController;
 use Psr\Container\ContainerInterface;
+use PDO;
 use Exception;
 
 class raNiveles_controller extends BaseController{
@@ -51,6 +52,35 @@ class raNiveles_controller extends BaseController{
             
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al crear los niveles' . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){$db = null;}
+            if($stmt !== null){$stmt = null;}
+        }
+    }
+
+    public function getRa(Request $request, Response $response, Array $args): Response{
+        $db = null;
+        $stmt = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $inputData = $this->getJsonInput($request);
+            if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            $db = $this->container->get('db');
+            $sql_get_ra = "SELECT * FROM raes_mod_test WHERE cuestionario_id = :cuestionario_id";
+            $stmt = $db->prepare($sql_get_ra);
+            $stmt->bindParam(':cuestionario_id', $inputData['cuestionario_id']);
+            $stmt->execute();
+            $ra = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(count($ra) > 0){
+                return $this->successResponse($response, 'Ra obtenida correctamente', [
+                    'ra' => $ra
+                ]);
+            }else{
+                return $this->errorResponse($response, 'No se encontro ra', 404);
+            }
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al obtener el ra' . $e->getMessage(), 500);
         }finally{
             if($db !== null){$db = null;}
             if($stmt !== null){$stmt = null;}
