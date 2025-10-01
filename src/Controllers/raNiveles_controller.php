@@ -88,4 +88,44 @@ class raNiveles_controller extends BaseController{
         }
     }
 
+    public function updateRa(Request $request, Response $response, Array $args): Response{
+        $db = null;
+        $stmt = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $inputData = $this->getJsonInput($request);
+            if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            $db = $this->container->get('db');
+            $programa_id = $this->getUserDataFromToken($request)['programa_id'];
+            $cuestionario_id = $inputData['cuestionario_id'];
+            $abreviatura = $inputData['abreviatura'];
+            $descripcion = $inputData['descripcion'];
+            foreach($inputData['niveles'] as $nivel){
+                $nivel_puntaje_minimo = $nivel['puntaje_min'];
+                $nivel_puntaje_maximo = $nivel['puntaje_max'];
+                $nivel_indicadores = $nivel['indicadores'];
+                
+                $sql_ra = "UPDATE raes_mod_test 
+                            SET abreviatura = :abreviatura, descripcion = :descripcion, puntaje_min = :puntaje_min, puntaje_max = :puntaje_max, indicadores = :indicadores 
+                            WHERE cuestionario_id = :cuestionario_id AND nivel = :nivel";
+                $stmt = $db->prepare($sql_ra);
+                $stmt->bindParam(':abreviatura', $abreviatura);
+                $stmt->bindParam(':descripcion', $descripcion);
+                $stmt->bindParam(':puntaje_min', $nivel_puntaje_minimo);
+                $stmt->bindParam(':puntaje_max', $nivel_puntaje_maximo);
+                $stmt->bindParam(':indicadores', $nivel_indicadores);
+                $stmt->bindParam(':cuestionario_id', $cuestionario_id);
+                $stmt->bindParam(':nivel', $nivel['nivel']);
+                $stmt->execute();
+            }
+            return $this->successResponse($response, 'Ra actualizado correctamente');
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al actualizar el RA' . $e->getMessage(), 500);
+        }finally{
+            if($db !== null){$db = null;}
+            if($stmt !== null){$stmt = null;}
+        }
+    }
+
 }

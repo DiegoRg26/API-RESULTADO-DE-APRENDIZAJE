@@ -41,4 +41,7 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
 
     // Guardar estado del cuestionario (proceso de realizado)
     $subgroup->post('/resolver/guardar-estado', 'App\Controllers\resolver_controller:updateEstado');
+
+    // Actualizar niveles
+    $subgroup->put('/update/nivel', 'App\Controllers\raNiveles_controller:updateRa');
 });
