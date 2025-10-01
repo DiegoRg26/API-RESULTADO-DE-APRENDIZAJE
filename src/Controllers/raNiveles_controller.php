@@ -23,7 +23,6 @@ class raNiveles_controller extends BaseController{
             $db = $this->container->get('db');
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
 
-
             $programa_id = $this->getUserDataFromToken($request)['programa_id'];
             $cuestionario_id = $inputData['cuestionario_id'];
             $abreviatura = $inputData['abreviatura'];
