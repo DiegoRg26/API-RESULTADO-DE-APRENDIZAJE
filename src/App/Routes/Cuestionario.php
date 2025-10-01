@@ -10,7 +10,7 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
 
     // obtener ra
-    $subgroup->get('/ra/get', 'App\Controllers\raNiveles_controller:getRa');
+    $subgroup->get('/ra/{cuestionario_id}/get', 'App\Controllers\raNiveles_controller:getRa');
 
     //Obtener informacion de un cuestionario
     $subgroup->get('/{cuestionario_id}', 'App\Controllers\MenuCuestionario_controller:getCuestInfo');

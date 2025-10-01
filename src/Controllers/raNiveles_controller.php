@@ -64,12 +64,13 @@ class raNiveles_controller extends BaseController{
         try{
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
-            $inputData = $this->getJsonInput($request);
-            if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            $cuestionario_id = $args['cuestionario_id'];
+            // $inputData = $this->getJsonInput($request);
+            // if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
             $db = $this->container->get('db');
             $sql_get_ra = "SELECT * FROM raes_mod_test WHERE cuestionario_id = :cuestionario_id";
             $stmt = $db->prepare($sql_get_ra);
-            $stmt->bindParam(':cuestionario_id', $inputData['cuestionario_id']);
+            $stmt->bindParam(':cuestionario_id', $cuestionario_id);
             $stmt->execute();
             $ra = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if(count($ra) > 0){
