@@ -34,7 +34,7 @@ class raNiveles_controller extends BaseController{
                 $nivel_puntaje_maximo = $nivel['puntaje_max'];
                 $nivel_indicadores = $nivel['indicadores'];
 
-                $sql_ra = "INSERT INTO raes_mod_test (cuestionario_id, abreviatura, descripcion, programa_id, puntaje_min, puntaje_max, nivel, indicadores) 
+                $sql_ra = "INSERT INTO ra_niveles_indicadores (cuestionario_id, abreviatura, descripcion, programa_id, puntaje_min, puntaje_max, nivel, indicadores) 
                             VALUES (:cuestionario_id, :abreviatura, :descripcion, :programa_id, :puntaje_min, :puntaje_max, :nivel, :indicadores)";
                 $stmt = $db->prepare($sql_ra);
                 $stmt->bindParam(':cuestionario_id', $cuestionario_id);
@@ -68,7 +68,7 @@ class raNiveles_controller extends BaseController{
             // $inputData = $this->getJsonInput($request);
             // if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
             $db = $this->container->get('db');
-            $sql_get_ra = "SELECT * FROM raes_mod_test WHERE cuestionario_id = :cuestionario_id";
+            $sql_get_ra = "SELECT * FROM ra_niveles_indicadores WHERE cuestionario_id = :cuestionario_id";
             $stmt = $db->prepare($sql_get_ra);
             $stmt->bindParam(':cuestionario_id', $cuestionario_id);
             $stmt->execute();
@@ -106,7 +106,7 @@ class raNiveles_controller extends BaseController{
                 $nivel_puntaje_maximo = $nivel['puntaje_max'];
                 $nivel_indicadores = $nivel['indicadores'];
                 
-                $sql_ra = "UPDATE raes_mod_test 
+                $sql_ra = "UPDATE ra_niveles_indicadores 
                             SET abreviatura = :abreviatura, descripcion = :descripcion, puntaje_min = :puntaje_min, puntaje_max = :puntaje_max, indicadores = :indicadores 
                             WHERE cuestionario_id = :cuestionario_id AND nivel = :nivel";
                 $stmt = $db->prepare($sql_ra);
@@ -119,7 +119,7 @@ class raNiveles_controller extends BaseController{
                 $stmt->bindParam(':nivel', $nivel['nivel']);
                 $stmt->execute();
             }
-            return $this->successResponse($response, 'Ra actualizado correctamente');
+            return $this->successResponse($response, 'RA actualizado correctamente');
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al actualizar el RA' . $e->getMessage(), 500);
         }finally{
