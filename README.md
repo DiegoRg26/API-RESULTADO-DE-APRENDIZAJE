@@ -56,8 +56,55 @@ public/
 - `MenuCuestionario_controller.php`: Menú de navegación de cuestionarios
 - `seguimiento_controller.php`: Seguimiento de progreso de estudiantes
 - `registro_controller.php`: Registro de nuevos usuarios
+- `raNiveles_controller.php`: Gestión de niveles de resultados de aprendizaje (RA)
+- `AutoProcessController.php`: Procesamiento automático de períodos expirados y creación de intentos faltantes
+- `genInformes_controller.php`: Generación de informes y estadísticas avanzadas (en desarrollo)
 
-## Instalación
+## Funcionalidades Adicionales No Documentadas
+
+### Procesos Automáticos (AutoProcess)
+- **Procesamiento de períodos expirados**: Sistema automático que identifica períodos académicos finalizados y genera intentos faltantes para estudiantes
+- **Creación automática de intentos**: Cuando un período expira, el sistema crea automáticamente los intentos de cuestionarios que los estudiantes no completaron
+
+### Sistema de Generación de Informes (GenInformes)
+- **Módulo en desarrollo** para generación de informes avanzados y estadísticas detalladas
+- **Módulo preparado para futuras funcionalidades de reporting**
+
+### Características de Seguridad No Documentadas
+
+#### Sistema Avanzado de Gestión de Sesiones
+- **Múltiples sesiones por estudiante**: Los estudiantes pueden mantener múltiples sesiones activas simultáneamente desde diferentes dispositivos
+- **Seguimiento detallado de sesiones**: Registro completo de metadatos de sesión incluyendo:
+  - Dirección IP del cliente (`ip_address`)
+  - User-Agent del navegador (`user_agent`)
+  - Timestamps de creación y última actividad (`fecha_creacion`, `fecha_ultima_actividad`)
+  - Token único de sesión (`session_token`) y JTI del JWT (`jwt_jti`)
+- **Control de sesiones concurrentes**: Límites automáticos en el número de sesiones activas por estudiante
+- **Renovación automática de sesiones**: Sistema inteligente que actualiza automáticamente las sesiones basándose en la actividad reciente del usuario
+- **Invalidación automática**: Sesiones inactivas se marcan automáticamente como inactivas después de períodos de inactividad
+
+#### Características de Seguridad Adicionales
+- **Validación estricta de tokens**: Verificación completa de estructura y validez de tokens JWT
+- **Gestión de ciclo de vida de sesiones**: Control automático del ciclo completo de vida de las sesiones
+- **Auditoría de acceso**: Registro detallado de todas las actividades de autenticación y acceso
+
+### Sistema de Progreso de Cuestionarios
+- **Seguimiento detallado**: Registro completo del progreso de cada estudiante en cada cuestionario
+- **Tiempo de respuesta**: Control preciso del tiempo utilizado por pregunta y total
+- **Progreso guardado**: Los estudiantes pueden pausar y continuar cuestionarios sin perder progreso
+- **Recuperación automática**: En caso de cierre inesperado del navegador, el progreso se mantiene
+
+### Características Avanzadas de Preguntas
+- **Soporte de imágenes**: Las preguntas y opciones pueden incluir imágenes en formato base64
+- **Orientación configurable**: Cada pregunta puede tener orientación específica (1-4)
+- **Sistema de peso**: Cada pregunta tiene un peso específico que afecta la calificación final
+- **Tiempo límite por cuestionario**: Control granular del tiempo disponible para cada cuestionario
+
+### Entidades del Sistema No Documentadas
+- **Campus**: Gestión de múltiples campus universitarios con asignación específica
+- **Niveles educativos**: Sistema jerárquico de niveles académicos (pregrado, posgrado, etc.)
+- **Relación programa-estudiante**: Asignación específica de estudiantes a programas académicos
+- **Sesiones avanzadas**: Tabla dedicada para gestión robusta de sesiones JWT con metadatos
 
 1. Clonar el repositorio:
 
@@ -391,6 +438,47 @@ Authorization: Bearer <token>
 
 - `GET /ver/respuestas/{intento_id}` - Obtener respuestas de un estudiante para un cuestionario
   - Path: `intento_id` (number) - ID de intento
+
+#### Resultados de Aprendizaje (RA)
+
+- `GET /cuestionario/ra/{cuestionario_id}/get` - Obtener niveles de resultados de aprendizaje de un cuestionario
+  - Headers: `Authorization: Bearer <token>`
+  - Path: `cuestionario_id` (number) - ID del cuestionario
+
+- `POST /cuestionario/create/nivel` - Crear niveles de resultados de aprendizaje para un cuestionario
+  - Headers: `Authorization: Bearer <token>` y `Content-Type: application/json`
+  - Body JSON:
+    ```json
+    {
+      "cuestionario_id": 123,
+      "abreviatura": "RA-01",
+      "descripcion": "Descripción del resultado de aprendizaje",
+      "niveles": [
+        {
+          "puntaje_min": 0,
+          "puntaje_max": 20,
+          "indicadores": "Indicadores para este nivel"
+        },
+        {
+          "puntaje_min": 21,
+          "puntaje_max": 40,
+          "indicadores": "Indicadores para este nivel"
+        }
+      ]
+    }
+    ```
+
+#### Procesos Automáticos (AutoProcess)
+
+- `GET /autoprocess/expired-periods` - Procesar períodos expirados y crear intentos faltantes
+  - Headers: `Authorization: Bearer <token>`
+  - Descripción: Sistema automático que identifica períodos académicos finalizados y genera intentos faltantes para estudiantes
+
+#### Informes
+
+- `GET /informes/*` - Sistema de generación de informes (en desarrollo)
+  - Headers: `Authorization: Bearer <token>`
+  - Descripción: Módulo preparado para futuras funcionalidades de reporting y estadísticas avanzadas
 
 ## Base de Datos
 
