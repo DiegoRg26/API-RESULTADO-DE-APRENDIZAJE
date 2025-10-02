@@ -445,6 +445,30 @@ Authorization: Bearer <token>
   - Headers: `Authorization: Bearer <token>`
   - Path: `cuestionario_id` (number) - ID del cuestionario
 
+- `PUT /cuestionario/update/nivel` - Actualizar niveles de resultados de aprendizaje para un cuestionario
+  - Headers: `Authorization: Bearer <token>` y `Content-Type: application/json`
+  - Body JSON:
+    ```json
+    {
+      "cuestionario_id": 123,
+      "abreviatura": "RA-01",
+      "descripcion": "Descripción actualizada del resultado de aprendizaje",
+      "niveles": [
+        {
+          "puntaje_min": 0,
+          "puntaje_max": 20,
+          "indicadores": "Indicadores actualizados para este nivel",
+          "nivel": 0
+        },
+        {
+          "puntaje_min": 21,
+          "puntaje_max": 40,
+          "indicadores": "Indicadores actualizados para este nivel",
+          "nivel": 1
+        }
+      ]
+    }
+    ```
 - `POST /cuestionario/create/nivel` - Crear niveles de resultados de aprendizaje para un cuestionario
   - Headers: `Authorization: Bearer <token>` y `Content-Type: application/json`
   - Body JSON:
@@ -467,8 +491,6 @@ Authorization: Bearer <token>
       ]
     }
     ```
-
-#### Procesos Automáticos (AutoProcess)
 
 - `GET /autoprocess/expired-periods` - Procesar períodos expirados y crear intentos faltantes
   - Headers: `Authorization: Bearer <token>`
