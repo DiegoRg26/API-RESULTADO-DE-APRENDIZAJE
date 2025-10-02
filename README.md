@@ -249,6 +249,16 @@ Authorization: Bearer <token>
   - Path: `cuestionario_id` (number)
   - Headers: `Authorization: Bearer <token>`
 
+#### Administración de Cuestionarios (Solo Administradores)
+
+- `GET /cuestionario/admin` - Obtener todos los cuestionarios creados por todos los docentes
+  - Headers: `Authorization: Bearer <token>`
+  - Descripción: Endpoint administrativo que obtiene todos los cuestionarios del sistema, incluyendo información del docente creador y programa asociado
+
+- `GET /cuestionario/admin/abiertos` - Obtener todos los cuestionarios abiertos del sistema
+  - Headers: `Authorization: Bearer <token>`
+  - Descripción: Endpoint administrativo que obtiene todos los cuestionarios abiertos con sus aperturas activas, incluyendo información del período, docente creador y programa asociado
+
 #### Asignación
 
 - `POST /asignacion/crear` - Crear asignación

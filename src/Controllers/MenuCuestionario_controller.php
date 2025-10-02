@@ -96,8 +96,7 @@ class MenuCuestionario_controller extends BaseController
 			$db = $this->container->get('db');
 			
 			// Consulta para obtener cuestionarios abiertos
-			$query = "
-				SELECT 
+			$query = "SELECT 
 					a.id as apertura_id,
 					c.id as cuestionario_id,
 					c.titulo,
@@ -226,4 +225,84 @@ class MenuCuestionario_controller extends BaseController
             if($db !== null){$db = null;}
         }
     }
+
+	public function getAllcuestionarios(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
+		try{
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+			$db = $this->container->get('db');
+			$sql_get = "SELECT rcp.*, c.titulo, c.descripcion 
+				        FROM relacion_cuestionario_programa rcp 
+				        JOIN cuestionario c ON rcp.id_cuestionario = c.id
+					    ORDER BY c.titulo ASC";
+			$stmt = $db->prepare($sql_get);
+			$stmt->execute();
+			$allCuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			return $this->successResponse($response, 'Cuestionarios obtenidos exitosamente', [
+				'cuestionarios' => $allCuestionarios,
+				'total' => count($allCuestionarios)
+			]);
+		}catch(Exception $e){
+			return $this->errorResponse($response, 'Error al obtener los cuestionarios: ' . $e->getMessage(), 500);
+		}finally{
+			if($db !== null){$db = null;}
+			if($stmt !== null){$stmt = null;}
+		}
+	}
+
+	public function getAllCuestionariosAbiertos(Request $request, Response $response, array $args): Response{
+		$db = null;
+		$stmt = null;
+		try{
+			$user_id = $this->getUserIdFromToken($request);
+			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+			$db = $this->container->get('db');
+			$sql_all_forms = "SELECT 
+					a.id as apertura_id,
+					c.id as cuestionario_id,
+					c.titulo,
+					c.descripcion,
+					p.id as periodo_id,
+					p.nombre as periodo_nombre,
+					p.fecha_inicio,
+					p.fecha_fin,
+					d.nombre as creador_nombre,
+					prog.nombre as programa_nombre
+				FROM 
+					apertura a
+				JOIN 
+					relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+				JOIN 
+					cuestionario c ON rcp.id_cuestionario = c.id
+				JOIN 
+					periodo p ON a.id_periodo = p.id
+				JOIN 
+					docente d ON rcp.id_docente = d.id
+				JOIN 
+					programa prog ON rcp.id_programa = prog.id
+				WHERE 
+					rcp.activo = 1
+					AND a.activo = 1
+				ORDER BY 
+					p.fecha_inicio DESC, c.titulo ASC";
+			$stmt = $db->prepare($sql_all_forms);
+			$stmt->execute();
+			$allCuestionariosAbiertos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			return $this->successResponse($response, 'Cuestionarios abiertos obtenidos exitosamente', [
+				'cuestionarios_abiertos' => $allCuestionariosAbiertos,
+				'total' => count($allCuestionariosAbiertos)
+			]);
+		}catch(Exception $e){
+			return $this->errorResponse($response, 'Error al obtener los cuestionarios abiertos: ' . $e->getMessage(), 500);
+		}finally{
+			if($stmt !== null){
+				$stmt = null;
+			}
+			if($db !== null){
+				$db = null;
+			}
+		}
+	}
 }

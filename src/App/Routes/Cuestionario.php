@@ -9,6 +9,12 @@ $group->group('/cuestionario', function(RouteCollectorProxy $subgroup){
     // Obtener cuestionarios abiertos con estado
     $subgroup->get('/abiertos', 'App\Controllers\MenuCuestionario_controller:getCuestionariosAbiertos');
 
+    // Obtener cuestionarios creados por todos
+    $subgroup->get('/admin', 'App\Controllers\MenuCuestionario_controller:getAllcuestionarios');
+
+    // obtener todos cuestionarios abiertos
+    $subgroup->get('/admin/abiertos', 'App\Controllers\MenuCuestionario_controller:getAllCuestionariosAbiertos');
+
     // obtener ra
     $subgroup->get('/ra/{cuestionario_id}/get', 'App\Controllers\raNiveles_controller:getRa');
 
