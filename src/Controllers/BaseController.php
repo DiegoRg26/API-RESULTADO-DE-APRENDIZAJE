@@ -181,7 +181,32 @@ class BaseController{
                 return $this->errorResponse($response, 'Usuario no autenticado', 401);
             }
             $userData = $this->getUserDataFromToken($request);
-            if(isset($userData['programa_id'])){
+            // if(isset($userData['programa_id'])){
+            //     $programa_id = $userData['programa_id'];
+            //     $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
+            //                             FROM programa p 
+            //                             JOIN nivel n ON p.id_nivel = n.id 
+            //                             JOIN campus c ON p.id_campus = c.id 
+            //                             WHERE p.id = :programa_id 
+            //                             ORDER BY p.nombre";
+            //     $stmt = $db->prepare($sql_get_programas);
+            //     $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            // }else{
+            //     $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
+            //                             FROM programa p 
+            //                             JOIN nivel n ON p.id_nivel = n.id 
+            //                             JOIN campus c ON p.id_campus = c.id 
+            //                             ORDER BY p.nombre";
+            //     $stmt = $db->prepare($sql_get_programas);
+            // }
+            if($userData['programa_id']==99){
+                $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
+                                        FROM programa p 
+                                        JOIN nivel n ON p.id_nivel = n.id 
+                                        JOIN campus c ON p.id_campus = c.id 
+                                        ORDER BY p.nombre";
+                $stmt = $db->prepare($sql_get_programas);
+            }else{
                 $programa_id = $userData['programa_id'];
                 $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
                                         FROM programa p 
@@ -191,13 +216,6 @@ class BaseController{
                                         ORDER BY p.nombre";
                 $stmt = $db->prepare($sql_get_programas);
                 $stmt->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
-            }else{
-                $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
-                                        FROM programa p 
-                                        JOIN nivel n ON p.id_nivel = n.id 
-                                        JOIN campus c ON p.id_campus = c.id 
-                                        ORDER BY p.nombre";
-                $stmt = $db->prepare($sql_get_programas);
             }
             if($stmt->execute()){
                 $programas = $stmt->fetchAll(PDO::FETCH_ASSOC);
