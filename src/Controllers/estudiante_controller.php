@@ -141,11 +141,7 @@ class estudiante_controller extends BaseController{
             $identificacion = $this->sanitizeInput($inputData['identificacion']);
     
             $userData = $this->getUserDataFromToken($request);
-            $programa_id = $userData['programa_id'];
-    
-            if(!$programa_id){
-                $programa_id = $inputData['programa_id'];
-            }
+            $programa_id = $inputData['programa_id'];
             
             //Valida si el programa es requerido
             if(!$programa_id){
@@ -159,13 +155,13 @@ class estudiante_controller extends BaseController{
             $stmt = $db->prepare($sql_verificar_estudiante);
             $stmt->bindParam(':identificacion', $identificacion, PDO::PARAM_STR);
             $stmt->execute();
-            
             $estudiante_existente = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if($estudiante_existente){
                 $estudiante_id = $estudiante_existente['id'];
                 
                 // Verificar si ya existe la relación estudiante-programa
+
                 $sql_verificar_relacion = "SELECT id FROM relacion_programa_estudiante 
                                             WHERE estudiante_id = :estudiante_id AND programa_id = :programa_id";
                 $stmt = $db->prepare($sql_verificar_relacion);

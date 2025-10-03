@@ -42,7 +42,7 @@ class MenuCuestionario_controller extends BaseController
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
 			$userdata = $this->getUserDataFromToken($request);
-			$user_rol = $userdata['rol'];
+			$user_rol = $userdata['rol_user'];
 			if($user_rol == 0){
 				// Consulta para obtener cuestionarios de todos los usuarios
 				$sql_get = "SELECT rcp.*, c.titulo, c.descripcion 
