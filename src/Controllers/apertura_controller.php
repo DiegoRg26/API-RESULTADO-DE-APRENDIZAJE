@@ -273,25 +273,31 @@ class apertura_controller extends BaseController
 			
 			$cuestionarioId = $this->sanitizeInput($inputData['cuestionario_id']);
 			$periodoId = $this->sanitizeInput($inputData['periodo_id']);
-			
-			// Verificar que el cuestionario pertenezca al usuario actual
-			$query_verificar = "
-				SELECT 
-					rcp.id
-				FROM 
-					relacion_cuestionario_programa rcp
-				WHERE 
-					rcp.id = :cuestionario_id
-					AND rcp.id_docente = :docente_id
-					AND rcp.activo = 1
-			";
-			$stmt_verificar = $db->prepare($query_verificar);
-			$stmt_verificar->bindParam(':cuestionario_id', $cuestionarioId, PDO::PARAM_INT);
-			$stmt_verificar->bindParam(':docente_id', $userId, PDO::PARAM_INT);
-			$stmt_verificar->execute();
-			
-			if ($stmt_verificar->rowCount() === 0) {
-				return $this->errorResponse($response, 'No tiene permisos para crear una apertura para este cuestionario o no existe', 403);
+
+			$userData = $this->getUserDataFromToken($request);
+
+			if($userData['programa_id'] != 99){
+				
+				// Verificar que el cuestionario pertenezca al usuario actual
+				$query_verificar = "
+					SELECT 
+						rcp.id
+					FROM 
+						relacion_cuestionario_programa rcp
+					WHERE 
+						rcp.id = :cuestionario_id
+						AND rcp.id_docente = :docente_id
+						AND rcp.activo = 1
+				";
+				$stmt_verificar = $db->prepare($query_verificar);
+				$stmt_verificar->bindParam(':cuestionario_id', $cuestionarioId, PDO::PARAM_INT);
+				$stmt_verificar->bindParam(':docente_id', $userId, PDO::PARAM_INT);
+				$stmt_verificar->execute();
+				
+				if ($stmt_verificar->rowCount() === 0) {
+					return $this->errorResponse($response, 'No tiene permisos para crear una apertura para este cuestionario o no existe', 403);
+				}
+
 			}
 			
 			$relacionId = $stmt_verificar->fetch(PDO::FETCH_ASSOC)['id'];

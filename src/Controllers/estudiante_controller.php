@@ -30,7 +30,7 @@ class estudiante_controller extends BaseController{
             $programa_id = $userData['programa_id'];
             
             //Valida si el usuario pertenece o no a un programa, en caso de que no, se obtiene todos los estudiantes de todos los programas
-            if(!$programa_id){
+            if($programa_id = 99){
                 // Query para obtener todos los estudiantes con sus programas (agrupados por estudiante)
                 $sql_get_estudiantes = "SELECT 
                                             e.id, 

@@ -199,7 +199,7 @@ class BaseController{
             //                             ORDER BY p.nombre";
             //     $stmt = $db->prepare($sql_get_programas);
             // }
-            if($userData['programa_id']==99){
+            if($userData['programa_id'] = 99){
                 $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
                                         FROM programa p 
                                         JOIN nivel n ON p.id_nivel = n.id 
