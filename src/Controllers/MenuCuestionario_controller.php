@@ -41,25 +41,40 @@ class MenuCuestionario_controller extends BaseController
 			if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
-			
-			// Consulta para obtener cuestionarios del usuario
-			$query = "SELECT rcp.*, c.titulo, c.descripcion 
+			$userdata = $this->getUserDataFromToken($request);
+			$user_rol = $userdata['rol'];
+			if($user_rol == 0){
+				// Consulta para obtener cuestionarios de todos los usuarios
+				$sql_get = "SELECT rcp.*, c.titulo, c.descripcion 
 				        FROM relacion_cuestionario_programa rcp 
 				        JOIN cuestionario c ON rcp.id_cuestionario = c.id
-					    WHERE rcp.id_docente = :docente_id
 					    ORDER BY c.titulo ASC";
-			
-			$stmt = $db->prepare($query);
-			$stmt->bindParam(':docente_id', $user_id, PDO::PARAM_INT);
-			$stmt->execute();
-			
-			$misCuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-			
-			return $this->successResponse($response, 'Cuestionarios obtenidos exitosamente', [
-				'cuestionarios' => $misCuestionarios,
-				'total' => count($misCuestionarios)
+				$stmt = $db->prepare($sql_get);
+				$stmt->execute();
+				$allCuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+				return $this->successResponse($response, 'Cuestionarios obtenidos exitosamente', [
+					'cuestionarios' => $allCuestionarios,
+					'total' => count($allCuestionarios)
 			]);
-			
+			}else{
+				// Consulta para obtener cuestionarios del usuario
+				$query = "SELECT rcp.*, c.titulo, c.descripcion 
+							FROM relacion_cuestionario_programa rcp 
+							JOIN cuestionario c ON rcp.id_cuestionario = c.id
+							WHERE rcp.id_docente = :docente_id
+							ORDER BY c.titulo ASC";
+				
+				$stmt = $db->prepare($query);
+				$stmt->bindParam(':docente_id', $user_id, PDO::PARAM_INT);
+				$stmt->execute();
+				
+				$misCuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+				
+				return $this->successResponse($response, 'Cuestionarios obtenidos exitosamente', [
+					'cuestionarios' => $misCuestionarios,
+					'total' => count($misCuestionarios)
+				]);
+			}
 		} catch (Exception $e) {
 			error_log("Error en getMisCuestionarios: " . $e->getMessage());
 			return $this->errorResponse($response, 'Error interno del servidor', 500);
