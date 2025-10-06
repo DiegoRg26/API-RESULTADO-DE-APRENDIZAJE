@@ -78,6 +78,10 @@ class genInformes_controller extends BaseController{
         try{
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $user_rol = $this->getUserDataFromToken($request)['rol'];
+            if($user_rol != 0){
+                return $this->errorResponse($response, 'Usuario no autorizado', 401);
+            }
             $inputData = $this->getJsonInput($request);
             if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
             $db = $this->container->get('db');
