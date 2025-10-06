@@ -110,40 +110,76 @@ class MenuCuestionario_controller extends BaseController
 			// Obtener conexión a la base de datos
 			$db = $this->container->get('db');
 			
+			// Detectar programa del usuario
+			$userData = $this->getUserDataFromToken($request);
+			$programaId = is_array($userData) && isset($userData['programa_id']) ? (int)$userData['programa_id'] : null;
+
 			// Consulta para obtener cuestionarios abiertos
-			$query = "SELECT 
-					a.id as apertura_id,
-					c.id as cuestionario_id,
-					c.titulo,
-					c.descripcion,
-					p.id as periodo_id,
-					p.nombre as periodo_nombre,
-					p.fecha_inicio,
-					p.fecha_fin,
-					d.nombre as creador_nombre,
-					prog.nombre as programa_nombre
-				FROM 
-					apertura a
-				JOIN 
-					relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
-				JOIN 
-					cuestionario c ON rcp.id_cuestionario = c.id
-				JOIN 
-					periodo p ON a.id_periodo = p.id
-				JOIN 
-					docente d ON rcp.id_docente = d.id
-				JOIN 
-					programa prog ON rcp.id_programa = prog.id
-				WHERE 
-					rcp.activo = 1
-					AND rcp.id_docente = :usuario_id
-					AND a.activo = 1
-				ORDER BY 
-					p.fecha_inicio DESC, c.titulo ASC
-			";
-			
-			$stmt = $db->prepare($query);
-			$stmt->bindParam(':usuario_id', $userId, PDO::PARAM_INT);
+			if ($programaId === 99) {
+				// Programa General: ver todas las aperturas activas
+				$query = "SELECT 
+						a.id as apertura_id,
+						c.id as cuestionario_id,
+						c.titulo,
+						c.descripcion,
+						p.id as periodo_id,
+						p.nombre as periodo_nombre,
+						p.fecha_inicio,
+						p.fecha_fin,
+						d.nombre as creador_nombre,
+						prog.nombre as programa_nombre
+					FROM 
+						apertura a
+					JOIN 
+						relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+					JOIN 
+						cuestionario c ON rcp.id_cuestionario = c.id
+					JOIN 
+						periodo p ON a.id_periodo = p.id
+					JOIN 
+						docente d ON rcp.id_docente = d.id
+					JOIN 
+						programa prog ON rcp.id_programa = prog.id
+					WHERE 
+						rcp.activo = 1
+						AND a.activo = 1
+					ORDER BY 
+						p.fecha_inicio DESC, c.titulo ASC";
+				$stmt = $db->prepare($query);
+			} else {
+				// Usuario normal: solo sus aperturas
+				$query = "SELECT 
+						a.id as apertura_id,
+						c.id as cuestionario_id,
+						c.titulo,
+						c.descripcion,
+						p.id as periodo_id,
+						p.nombre as periodo_nombre,
+						p.fecha_inicio,
+						p.fecha_fin,
+						d.nombre as creador_nombre,
+						prog.nombre as programa_nombre
+					FROM 
+						apertura a
+					JOIN 
+						relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+					JOIN 
+						cuestionario c ON rcp.id_cuestionario = c.id
+					JOIN 
+						periodo p ON a.id_periodo = p.id
+					JOIN 
+						docente d ON rcp.id_docente = d.id
+					JOIN 
+						programa prog ON rcp.id_programa = prog.id
+					WHERE 
+						rcp.activo = 1
+						AND rcp.id_docente = :usuario_id
+						AND a.activo = 1
+					ORDER BY 
+						p.fecha_inicio DESC, c.titulo ASC";
+				$stmt = $db->prepare($query);
+				$stmt->bindParam(':usuario_id', $userId, PDO::PARAM_INT);
+			}
 			$stmt->execute();
 			
 			$cuestionariosAbiertos = $stmt->fetchAll(PDO::FETCH_ASSOC);

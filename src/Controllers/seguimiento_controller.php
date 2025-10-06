@@ -202,34 +202,7 @@ class seguimiento_controller extends BaseController{
             $docente_id = $this->getUserIdFromToken($request);
             if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
-            if($docente_id = 99){
-                $sql_allQuiz = "SELECT 
-                                    c.id as cuestionario_id,
-                                    c.titulo,
-                                    c.descripcion,
-                                    p.nombre as programa_nombre,
-                                    a.id as apertura_id,
-                                    per.nombre as periodo_nombre,
-                                    a.activo as apertura_activa,
-                                    COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_respondieron
-                                FROM 
-                                    cuestionario c
-                                JOIN 
-                                    relacion_cuestionario_programa rcp ON c.id = rcp.id_cuestionario
-                                JOIN 
-                                    programa p ON rcp.id_programa = p.id
-                                JOIN 
-                                    apertura a ON rcp.id = a.id_relacion_cuestionario_programa
-                                JOIN 
-                                    periodo per ON a.id_periodo = per.id
-                                LEFT JOIN 
-                                    intento_cuestionario ic ON a.id = ic.id_apertura AND ic.completado = 1
-                                GROUP BY 
-                                    c.id, c.titulo, c.descripcion, p.nombre, a.id, per.nombre, a.activo
-                                ORDER BY 
-                                    a.activo DESC, per.fecha_inicio DESC, c.titulo";
-                $stmt = $db->prepare($sql_allQuiz);
-            }else{
+            if($docente_id != 99){
                 $sql_allQuiz = "SELECT 
                                     c.id as cuestionario_id,
                                     c.titulo,
@@ -259,6 +232,33 @@ class seguimiento_controller extends BaseController{
                                     a.activo DESC, per.fecha_inicio DESC, c.titulo";
                 $stmt = $db->prepare($sql_allQuiz);
                 $stmt->bindParam(':docente_id', $docente_id);
+            }else{
+                $sql_allQuiz = "SELECT 
+                                    c.id as cuestionario_id,
+                                    c.titulo,
+                                    c.descripcion,
+                                    p.nombre as programa_nombre,
+                                    a.id as apertura_id,
+                                    per.nombre as periodo_nombre,
+                                    a.activo as apertura_activa,
+                                    COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_respondieron
+                                FROM 
+                                    cuestionario c
+                                JOIN 
+                                    relacion_cuestionario_programa rcp ON c.id = rcp.id_cuestionario
+                                JOIN 
+                                    programa p ON rcp.id_programa = p.id
+                                JOIN 
+                                    apertura a ON rcp.id = a.id_relacion_cuestionario_programa
+                                JOIN 
+                                    periodo per ON a.id_periodo = per.id
+                                LEFT JOIN 
+                                    intento_cuestionario ic ON a.id = ic.id_apertura AND ic.completado = 1
+                                GROUP BY 
+                                    c.id, c.titulo, c.descripcion, p.nombre, a.id, per.nombre, a.activo
+                                ORDER BY 
+                                    a.activo DESC, per.fecha_inicio DESC, c.titulo";
+                $stmt = $db->prepare($sql_allQuiz);
             }
             $stmt->execute();
             $cuestionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);

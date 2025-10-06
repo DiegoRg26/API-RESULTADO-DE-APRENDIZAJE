@@ -84,18 +84,39 @@ class asignacion_controller extends BaseController{
             if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
             if(empty($docente_id)){return $this->errorResponse($response, 'ID de docente inválido', 400);}
-                $query_get_asignaciones = "SELECT a.id, a.id_apertura, a.id_estudiante, e.identificacion,
-                        e.nombre as estudiante_nombre, e.email,
-                        c.titulo as cuestionario_titulo, p.nombre as periodo_nombre
-                        FROM asignacion a
-                        JOIN estudiante e ON a.id_estudiante = e.id
-                        JOIN apertura ap ON a.id_apertura = ap.id
-                        JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
-                        JOIN cuestionario c ON rcp.id_cuestionario = c.id
-                        JOIN periodo p ON ap.id_periodo = p.id
-                        WHERE rcp.id_docente = :docente_id";
-                $stmt_get_asignaciones = $db->prepare($query_get_asignaciones);
-                $stmt_get_asignaciones->bindParam(':docente_id', $docente_id);
+                // Detectar si el usuario es de Programa General (99)
+                $userData = $this->getUserDataFromToken($request);
+                $programaId = is_array($userData) && isset($userData['programa_id']) ? (int)$userData['programa_id'] : null;
+
+                if ($programaId === 99) {
+                    // General: traer TODAS las asignaciones
+                    $query_get_asignaciones = "SELECT a.id, a.id_apertura, a.id_estudiante, e.identificacion,
+                            e.nombre as estudiante_nombre, e.email,
+                            c.titulo as cuestionario_titulo, p.nombre as periodo_nombre, pr.nombre as programa_nombre
+                            FROM asignacion a
+                            JOIN estudiante e ON a.id_estudiante = e.id
+                            JOIN apertura ap ON a.id_apertura = ap.id
+                            JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                            JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                            JOIN periodo p ON ap.id_periodo = p.id
+                            JOIN programa pr ON rcp.id_programa = pr.id";
+                    $stmt_get_asignaciones = $db->prepare($query_get_asignaciones);
+                } else {
+                    // Docente normal: solo sus asignaciones
+                    $query_get_asignaciones = "SELECT a.id, a.id_apertura, a.id_estudiante, e.identificacion,
+                            e.nombre as estudiante_nombre, e.email,
+                            c.titulo as cuestionario_titulo, p.nombre as periodo_nombre, pr.nombre as programa_nombre
+                            FROM asignacion a
+                            JOIN estudiante e ON a.id_estudiante = e.id
+                            JOIN apertura ap ON a.id_apertura = ap.id
+                            JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                            JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                            JOIN periodo p ON ap.id_periodo = p.id
+                            JOIN programa pr ON rcp.id_programa = pr.id
+                            WHERE rcp.id_docente = :docente_id";
+                    $stmt_get_asignaciones = $db->prepare($query_get_asignaciones);
+                    $stmt_get_asignaciones->bindParam(':docente_id', $docente_id);
+                }
                 $stmt_get_asignaciones->execute();
                 $asignaciones = $stmt_get_asignaciones->fetchAll();
                 return $this->successResponse($response, 'Asignaciones obtenidas exitosamente', [
@@ -121,18 +142,37 @@ class asignacion_controller extends BaseController{
             $db = $this->container->get('db');
             $docente_id = $this->getUserIdFromToken($request);
             if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
-            $sql_get_asignaciones = "SELECT DISTINCT ap.id, c.titulo, c.descripcion, p.nombre as periodo_nombre, 
-                                p.fecha_inicio, p.fecha_fin, pr.nombre as programa_nombre
-                                FROM apertura ap
-                                JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
-                                JOIN cuestionario c ON rcp.id_cuestionario = c.id
-                                JOIN periodo p ON ap.id_periodo = p.id
-                                JOIN programa pr ON rcp.id_programa = pr.id
-                                JOIN asignacion a ON ap.id = a.id_apertura
-                                WHERE rcp.id_docente = :docente_id
-                                AND ap.activo = 1";
-            $stmt_get_asignaciones = $db->prepare($sql_get_asignaciones);
-            $stmt_get_asignaciones->bindParam(':docente_id', $docente_id, PDO::PARAM_INT);
+            // Detectar si el usuario es General
+            $userData = $this->getUserDataFromToken($request);
+            $programaId = is_array($userData) && isset($userData['programa_id']) ? (int)$userData['programa_id'] : null;
+
+            if ($programaId === 99) {
+                // General: todas las aperturas con asignaciones
+                $sql_get_asignaciones = "SELECT DISTINCT ap.id, c.titulo, c.descripcion, p.nombre as periodo_nombre, 
+                                    p.fecha_inicio, p.fecha_fin, pr.nombre as programa_nombre
+                                    FROM apertura ap
+                                    JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                                    JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                                    JOIN periodo p ON ap.id_periodo = p.id
+                                    JOIN programa pr ON rcp.id_programa = pr.id
+                                    JOIN asignacion a ON ap.id = a.id_apertura
+                                    WHERE ap.activo = 1";
+                $stmt_get_asignaciones = $db->prepare($sql_get_asignaciones);
+            } else {
+                // Docente normal: solo sus aperturas con asignaciones
+                $sql_get_asignaciones = "SELECT DISTINCT ap.id, c.titulo, c.descripcion, p.nombre as periodo_nombre, 
+                                    p.fecha_inicio, p.fecha_fin, pr.nombre as programa_nombre
+                                    FROM apertura ap
+                                    JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                                    JOIN cuestionario c ON rcp.id_cuestionario = c.id
+                                    JOIN periodo p ON ap.id_periodo = p.id
+                                    JOIN programa pr ON rcp.id_programa = pr.id
+                                    JOIN asignacion a ON ap.id = a.id_apertura
+                                    WHERE rcp.id_docente = :docente_id
+                                    AND ap.activo = 1";
+                $stmt_get_asignaciones = $db->prepare($sql_get_asignaciones);
+                $stmt_get_asignaciones->bindParam(':docente_id', $docente_id, PDO::PARAM_INT);
+            }
             $stmt_get_asignaciones->execute();
             $asignaciones = $stmt_get_asignaciones->fetchAll(PDO::FETCH_ASSOC);
             return $this->successResponse($response, 'Asignaciones obtenidas exitosamente', [
@@ -159,29 +199,43 @@ class asignacion_controller extends BaseController{
             $id_asignacion = $args['id_asignacion'];
             $id_docente = $this->getUserIdFromToken($request);
             if(!$id_docente){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $userData = $this->getUserDataFromToken($request);
+            $programaId = is_array($userData) && isset($userData['programa_id']) ? (int)$userData['programa_id'] : null;
             $db = $this->container->get('db');
-            $sql_verificar = "SELECT a.id 
-                    FROM asignacion a
-                    JOIN apertura ap ON a.id_apertura = ap.id
-                    JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
-                    WHERE a.id = ? AND rcp.id_docente = ?";
-                    $stmt_verificar = $db->prepare($sql_verificar);
-                    $stmt_verificar->bindParam(1, $id_asignacion, PDO::PARAM_INT);
-                    $stmt_verificar->bindParam(2, $id_docente, PDO::PARAM_INT);
-                    $stmt_verificar->execute();
-                    $result = $stmt_verificar->fetch(PDO::FETCH_ASSOC);
-                    if($result){
-                        $sql_eliminar = "DELETE FROM asignacion WHERE id = ?";
-                        $stmt_eliminar = $db->prepare($sql_eliminar);
-                        $stmt_eliminar->bindParam(1, $id_asignacion, PDO::PARAM_INT);
-                        if($stmt_eliminar->execute()){
-                            return $this->successResponse($response, 'Asignación eliminada exitosamente');
-                        }else{
-                            return $this->errorResponse($response, 'Error al eliminar la asignación', 500);
-                        }
+            if ($programaId === 99) {
+                // Programa General: permitir eliminar cualquier asignación
+                $sql_eliminar = "DELETE FROM asignacion WHERE id = ?";
+                $stmt_eliminar = $db->prepare($sql_eliminar);
+                $stmt_eliminar->bindParam(1, $id_asignacion, PDO::PARAM_INT);
+                if($stmt_eliminar->execute()){
+                    return $this->successResponse($response, 'Asignación eliminada exitosamente');
+                }else{
+                    return $this->errorResponse($response, 'Error al eliminar la asignación', 500);
+                }
+            } else {
+                $sql_verificar = "SELECT a.id 
+                        FROM asignacion a
+                        JOIN apertura ap ON a.id_apertura = ap.id
+                        JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                        WHERE a.id = ? AND rcp.id_docente = ?";
+                $stmt_verificar = $db->prepare($sql_verificar);
+                $stmt_verificar->bindParam(1, $id_asignacion, PDO::PARAM_INT);
+                $stmt_verificar->bindParam(2, $id_docente, PDO::PARAM_INT);
+                $stmt_verificar->execute();
+                $result = $stmt_verificar->fetch(PDO::FETCH_ASSOC);
+                if($result){
+                    $sql_eliminar = "DELETE FROM asignacion WHERE id = ?";
+                    $stmt_eliminar = $db->prepare($sql_eliminar);
+                    $stmt_eliminar->bindParam(1, $id_asignacion, PDO::PARAM_INT);
+                    if($stmt_eliminar->execute()){
+                        return $this->successResponse($response, 'Asignación eliminada exitosamente');
                     }else{
-                        return $this->errorResponse($response, 'No tiene permisos para eliminar esta asignación o no existe', 403);
+                        return $this->errorResponse($response, 'Error al eliminar la asignación', 500);
                     }
+                }else{
+                    return $this->errorResponse($response, 'No tiene permisos para eliminar esta asignación o no existe', 403);
+                }
+            }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al eliminar la asignación: ' . $e->getMessage(), 500);
         }finally{
@@ -207,30 +261,45 @@ class asignacion_controller extends BaseController{
                 return $this->errorResponse($response, 'Datos JSON inválidos', 400);
             }
             $apertura_id = $this->sanitizeInput($inputData['apertura_id']);
-            $sql_verificar = "SELECT ap.id 
-                            FROM apertura ap
-                            JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
-                            WHERE ap.id = ? AND rcp.id_docente = ?";
-            $stmt_verificar = $db->prepare($sql_verificar);
-            $stmt_verificar->bindParam(1, $apertura_id, PDO::PARAM_INT);
-            $stmt_verificar->bindParam(2, $docente_id, PDO::PARAM_INT);
-            $stmt_verificar->execute();
-            $result = $stmt_verificar->fetch(PDO::FETCH_ASSOC);
-            if($result){
-                $sql_eliminar = "DELETE a FROM asignacion a
-                                JOIN apertura ap ON a.id_apertura = ap.id
-                                JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
-                                WHERE a.id_apertura = ? AND rcp.id_docente = ?";
+            $userData = $this->getUserDataFromToken($request);
+            $programaId = is_array($userData) && isset($userData['programa_id']) ? (int)$userData['programa_id'] : null;
+
+            if ($programaId === 99) {
+                // Programa General: permitir eliminar todas las asignaciones de la apertura sin verificar docente
+                $sql_eliminar = "DELETE a FROM asignacion a WHERE a.id_apertura = ?";
                 $stmt_eliminar = $db->prepare($sql_eliminar);
                 $stmt_eliminar->bindParam(1, $apertura_id, PDO::PARAM_INT);
-                $stmt_eliminar->bindParam(2, $docente_id, PDO::PARAM_INT);
                 if($stmt_eliminar->execute()){
                     return $this->successResponse($response, 'Asignaciones eliminadas exitosamente');
                 }else{
                     return $this->errorResponse($response, 'Error al eliminar las asignaciones', 500);
                 }
-            }else{
-                return $this->errorResponse($response, 'No tiene permisos para eliminar estas asignaciones o la apertura no existe', 403);
+            } else {
+                $sql_verificar = "SELECT ap.id 
+                                FROM apertura ap
+                                JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                                WHERE ap.id = ? AND rcp.id_docente = ?";
+                $stmt_verificar = $db->prepare($sql_verificar);
+                $stmt_verificar->bindParam(1, $apertura_id, PDO::PARAM_INT);
+                $stmt_verificar->bindParam(2, $docente_id, PDO::PARAM_INT);
+                $stmt_verificar->execute();
+                $result = $stmt_verificar->fetch(PDO::FETCH_ASSOC);
+                if($result){
+                    $sql_eliminar = "DELETE a FROM asignacion a
+                                    JOIN apertura ap ON a.id_apertura = ap.id
+                                    JOIN relacion_cuestionario_programa rcp ON ap.id_relacion_cuestionario_programa = rcp.id
+                                    WHERE a.id_apertura = ? AND rcp.id_docente = ?";
+                    $stmt_eliminar = $db->prepare($sql_eliminar);
+                    $stmt_eliminar->bindParam(1, $apertura_id, PDO::PARAM_INT);
+                    $stmt_eliminar->bindParam(2, $docente_id, PDO::PARAM_INT);
+                    if($stmt_eliminar->execute()){
+                        return $this->successResponse($response, 'Asignaciones eliminadas exitosamente');
+                    }else{
+                        return $this->errorResponse($response, 'Error al eliminar las asignaciones', 500);
+                    }
+                }else{
+                    return $this->errorResponse($response, 'No tiene permisos para eliminar estas asignaciones o la apertura no existe', 403);
+                }
             }
         }catch(Exception $e){
             return $this->errorResponse($response, 'Error al eliminar las asignaciones: ' . $e->getMessage(), 500);

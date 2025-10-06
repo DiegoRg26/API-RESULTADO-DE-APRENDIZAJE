@@ -1,10 +1,12 @@
 <?php
 // config/database.php
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
 class Database {
-    private $host = 'localhost';
-    private $db_name = 'testv2';
-    private $username = 'root'; 
-    private $password = '';
+    private $host = $_ENV['DB_HOST'];
+    private $db_name = $_ENV['DB_NAME'];
+    private $username = $_ENV['DB_USER']; 
+    private $password = $_ENV['DB_PASSWORD'];
     private $conn;
     
     public function connect() {

@@ -21,6 +21,8 @@ class login_controller extends BaseController
 {
     private $jwtSecret;
     private $jwtExpiration;
+    private $recaptchaSecret;
+    private $recaptchaVerifyUrl;
 
     
     public function __construct(ContainerInterface $c)
@@ -28,6 +30,8 @@ class login_controller extends BaseController
         parent::__construct($c);
         $this->jwtSecret = $_ENV['JWT_SECRET'];
         $this->jwtExpiration = $_ENV['JWT_EXPIRATION'];
+        $this->recaptchaSecret = $_ENV['RECAPTCHA_SECRET_KEY'] ?? '';
+        $this->recaptchaVerifyUrl = $_ENV['RECAPTCHA_VERIFY_URL'] ?? 'https://www.google.com/recaptcha/api/siteverify';
     }
     
     /**
@@ -56,6 +60,17 @@ class login_controller extends BaseController
             $validation = $this->validateLoginData($inputData);
             if (!$validation['valid']) {
                 return $this->errorResponse($response, $validation['message'], 400);
+            }
+
+            // Validar reCAPTCHA (v2 checkbox) antes de autenticar
+            $recaptchaToken = $inputData['recaptchaToken'] ?? '';
+            if (empty($recaptchaToken)) {
+                return $this->errorResponse($response, 'Falta recaptchaToken', 400);
+            }
+            $serverParams = $request->getServerParams();
+            $remoteIp = $serverParams['REMOTE_ADDR'] ?? null;
+            if (!$this->verifyRecaptcha($recaptchaToken, $remoteIp)) {
+                return $this->errorResponse($response, 'reCAPTCHA inválido', 401);
             }
             
             $email = $inputData['email'];
@@ -336,6 +351,54 @@ class login_controller extends BaseController
             'programa_id' => $user['programa_id'] ? (int) $user['programa_id'] : null,
             'fecha_registro' => $user['fecha_registro']
         ];
+    }
+    
+    /**
+     * Verifica el token de reCAPTCHA en Google
+     * 
+     * @param string $token Token recibido desde el cliente (grecaptcha.getResponse())
+     * @param string|null $remoteIp IP del cliente (opcional)
+     * @return bool true si es válido, false si no
+     */
+    private function verifyRecaptcha(string $token, ?string $remoteIp = null): bool
+    {
+        if (empty($this->recaptchaSecret)) {
+            // Si no hay secreto configurado, por seguridad negar
+            error_log('RECAPTCHA_SECRET no está configurado');
+            return false;
+        }
+
+        $postFields = [
+            'secret' => $this->recaptchaSecret,
+            'response' => $token,
+        ];
+        if (!empty($remoteIp)) {
+            $postFields['remoteip'] = $remoteIp;
+        }
+
+        $ch = curl_init($this->recaptchaVerifyUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postFields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+        $result = curl_exec($ch);
+        if ($result === false) {
+            error_log('Error cURL reCAPTCHA: ' . curl_error($ch));
+            curl_close($ch);
+            return false;
+        }
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode < 200 || $httpCode >= 300) {
+            error_log('HTTP no OK al verificar reCAPTCHA: ' . $httpCode);
+            return false;
+        }
+
+        $data = json_decode($result, true);
+        return isset($data['success']) && $data['success'] === true;
     }
     
     

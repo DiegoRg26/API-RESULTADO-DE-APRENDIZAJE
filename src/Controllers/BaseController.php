@@ -72,8 +72,9 @@ class BaseController{
         $response->getBody()->write(json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         
         return $response
-        // ->withHeader('Access-Control-Allow-Origin', '*')
-        // ->withHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+            // CORS: habilitar origen del front (Vite)
+            ->withHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+            // ->withHeader('Access-Control-Allow-Origin', 'http://localhost:3000') // opcional si usas CRA
             ->withHeader('Content-Type', 'application/json; charset=utf-8')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
@@ -101,8 +102,9 @@ class BaseController{
         $response->getBody()->write(json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         
         return $response
-        // ->withHeader('Access-Control-Allow-Origin', '*')
-        // ->withHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+            // CORS: habilitar origen del front (Vite)
+            ->withHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+            // ->withHeader('Access-Control-Allow-Origin', 'http://localhost:3000') // opcional si usas CRA
             ->withHeader('Content-Type', 'application/json; charset=utf-8')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
@@ -199,7 +201,7 @@ class BaseController{
             //                             ORDER BY p.nombre";
             //     $stmt = $db->prepare($sql_get_programas);
             // }
-            if($userData['programa_id'] = 99){
+            if($userData['programa_id']==99){
                 $sql_get_programas = "SELECT p.id, p.nombre, n.nombre as nivel_nombre, c.nombre as campus_nombre, n.puntaje_maximo as nivel_puntaje_maximo 
                                         FROM programa p 
                                         JOIN nivel n ON p.id_nivel = n.id 

@@ -297,10 +297,15 @@ class apertura_controller extends BaseController
 				if ($stmt_verificar->rowCount() === 0) {
 					return $this->errorResponse($response, 'No tiene permisos para crear una apertura para este cuestionario o no existe', 403);
 				}
+				
+				$relacionRow = $stmt_verificar->fetch(PDO::FETCH_ASSOC);
+				$relacionId = isset($relacionRow['id']) ? (int)$relacionRow['id'] : null;
 
+			}else{
+				$relacionId = $cuestionarioId;
 			}
+			if(!$relacionId){return $this->errorResponse($response, 'No se encontro la relacion del cuestionario', 404);}
 			
-			$relacionId = $stmt_verificar->fetch(PDO::FETCH_ASSOC)['id'];
 			
 			// Verificar que no exista ya una apertura activa para este cuestionario
 			$query_verificar_apertura = "
