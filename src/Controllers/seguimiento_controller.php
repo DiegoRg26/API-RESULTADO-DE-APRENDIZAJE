@@ -202,7 +202,8 @@ class seguimiento_controller extends BaseController{
             $docente_id = $this->getUserIdFromToken($request);
             if(!$docente_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
-            if($docente_id != 99){
+            $user_programa_id = $this->getUserDataFromToken($request)['programa_id'];
+            if($user_programa_id != 99){
                 $sql_allQuiz = "SELECT 
                                     c.id as cuestionario_id,
                                     c.titulo,
