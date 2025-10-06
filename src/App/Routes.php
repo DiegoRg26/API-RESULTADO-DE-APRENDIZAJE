@@ -50,4 +50,6 @@ $app->group('/api', function(RouteCollectorProxy $group){
     @include __DIR__ . '/Routes/Resultado.php';
     //==============================[Rutas de Autoproceso]==========================
     @include __DIR__ . '/Routes/AutoProcess.php';
+    //==============================[Rutas de Informes]==========================
+    @include __DIR__ . '/Routes/GenInformes.php';
 });
