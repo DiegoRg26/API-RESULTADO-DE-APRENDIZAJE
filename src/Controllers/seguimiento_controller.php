@@ -24,9 +24,35 @@ class seguimiento_controller extends BaseController{
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $apertura_id = $args["apertura_id"];
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
+            $docente_rol = $this->getUserDataFromToken($request)['rol'];
             $db = $this->container->get('db');
-
-            $query_cuestionario = "SELECT 
+            if($docente_rol == 0){
+                $query_cuestionario = "SELECT 
+                                        a.id as apertura_id,
+                                        a.activo,
+                                        c.id,
+                                        c.titulo,
+                                        c.descripcion,
+                                        p.nombre as periodo_nombre,
+                                        p.fecha_inicio,
+                                        p.fecha_fin,
+                                        prog.nombre as programa_nombre
+                                    FROM 
+                                        apertura a
+                                    JOIN 
+                                        relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                    JOIN 
+                                        cuestionario c ON rcp.id_cuestionario = c.id
+                                    JOIN 
+                                        periodo p ON a.id_periodo = p.id
+                                    JOIN 
+                                        programa prog ON rcp.id_programa = prog.id
+                                    WHERE 
+                                        a.id = :apertura_id";
+                $stmt = $db->prepare($query_cuestionario);
+                $stmt->bindParam(':apertura_id', $apertura_id);					
+            }else{
+                $query_cuestionario = "SELECT 
                                     a.id as apertura_id,
                                     a.activo,
                                     c.id,
@@ -49,9 +75,11 @@ class seguimiento_controller extends BaseController{
                                 WHERE 
                                     a.id = :apertura_id
                                     AND rcp.id_docente = :usuario_id";
-            $stmt = $db->prepare($query_cuestionario);
-            $stmt->bindParam(':apertura_id', $apertura_id);
-            $stmt->bindParam(':usuario_id', $user_id);
+                $stmt = $db->prepare($query_cuestionario);
+                $stmt->bindParam(':apertura_id', $apertura_id);
+                $stmt->bindParam(':usuario_id', $user_id);
+            }
+            
             $stmt->execute();
             $cuestionario = $stmt->fetch(PDO::FETCH_ASSOC);
             if(!$cuestionario){return $this->errorResponse($response, 'Cuestionario no encontrado', 404);}

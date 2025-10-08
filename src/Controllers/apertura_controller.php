@@ -261,7 +261,6 @@ class apertura_controller extends BaseController
 			if (!$inputData) {
 				return $this->errorResponse($response, 'Datos JSON inválidos', 400);
 			}
-			
 			// Validar campos requeridos
 			if (!isset($inputData['cuestionario_id']) || empty($inputData['cuestionario_id'])) {
 				return $this->errorResponse($response, 'El ID del cuestionario es requerido', 400);
@@ -272,6 +271,11 @@ class apertura_controller extends BaseController
 			}
 			
 			$cuestionarioId = $this->sanitizeInput($inputData['cuestionario_id']);
+			
+			$RA = $this->verificarRA($cuestionarioId);
+
+			if(!$RA){return $this->errorResponse($response, 'El cuestionario no tiene Resultados de Aprendizaje asignados', 403);}
+
 			$periodoId = $this->sanitizeInput($inputData['periodo_id']);
 
 			$userData = $this->getUserDataFromToken($request);
@@ -537,4 +541,25 @@ class apertura_controller extends BaseController
 			if($db !== null){$db = null;}
 		}
 	}
+
+	private function verificarRA($cuestionario_id){
+		$db = null;
+		$stmt = null;
+		try{
+			$db = $this->container->get('db');
+			$sql_ver = "SELECT * FROM ra_niveles_indicadores WHERE id_cuestionario = :cuestionario_id";
+			$stmt = $db->prepare($sql_ver);
+			$stmt->bindParam("cuestionario_id", $cuestionario_id);
+			$stmt->execute();
+			$ra = $stmt->fetch(PDO::FETCH_ASSOC);
+			if(!$ra){return false;}
+			return true;
+		}catch(Exception $e){
+			return false;
+		}finally{
+			if($stmt !== null){$stmt = null;}
+			if($db !== null){$db = null;}
+		}
+	}
+
 }
