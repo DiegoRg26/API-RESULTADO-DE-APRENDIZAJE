@@ -271,10 +271,12 @@ class apertura_controller extends BaseController
 			}
 			
 			$cuestionarioId = $this->sanitizeInput($inputData['cuestionario_id']);
-			
+
 			$RA = $this->verificarRA($cuestionarioId);
 
-			if(!$RA){return $this->errorResponse($response, 'El cuestionario no tiene Resultados de Aprendizaje asignados', 403);}
+			if(!$RA){
+				return $this->errorResponse($response, 'El cuestionario no tiene Resultados de Aprendizaje asignados', 403);
+			}
 
 			$periodoId = $this->sanitizeInput($inputData['periodo_id']);
 
@@ -547,7 +549,7 @@ class apertura_controller extends BaseController
 		$stmt = null;
 		try{
 			$db = $this->container->get('db');
-			$sql_ver = "SELECT * FROM ra_niveles_indicadores WHERE id_cuestionario = :cuestionario_id";
+			$sql_ver = "SELECT * FROM ra_niveles_indicadores WHERE cuestionario_id = :cuestionario_id";
 			$stmt = $db->prepare($sql_ver);
 			$stmt->bindParam("cuestionario_id", $cuestionario_id);
 			$stmt->execute();
