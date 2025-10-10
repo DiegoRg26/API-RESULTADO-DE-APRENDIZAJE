@@ -24,7 +24,7 @@ class seguimiento_controller extends BaseController{
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $apertura_id = $args["apertura_id"];
             if($apertura_id <= 0){return $this->errorResponse($response, 'ID de apertura inválido', 400);}
-            $docente_rol = $this->getUserDataFromToken($request)['rol'];
+            $docente_rol = $this->getUserDataFromToken($request)['rol_user'];
             $db = $this->container->get('db');
             if($docente_rol == 0){
                 $query_cuestionario = "SELECT 
@@ -160,7 +160,46 @@ class seguimiento_controller extends BaseController{
             $user_id = $this->getUserIdFromToken($request);
             if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
             $db = $this->container->get('db');
-            $query_seguimiento = "SELECT 
+            $docente_rol = $this->getUserDataFromToken($request)['rol_user'];
+
+            if($docente_rol == 0){
+                $query_seguimiento = "SELECT
+                                    a.id as apertura_id,
+                                    c.id as cuestionario_id,
+                                    c.titulo,
+                                    c.descripcion,
+                                    p.nombre as periodo_nombre,
+                                    p.fecha_inicio,
+                                    p.fecha_fin,
+                                    prog.nombre as programa_nombre,
+                                    COUNT(DISTINCT asig.id_estudiante) as total_estudiantes_asignados,
+                                    COUNT(DISTINCT ic.id_estudiante) as total_estudiantes_completados
+                                FROM 
+                                    apertura a
+                                JOIN 
+                                    relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                JOIN 
+                                    cuestionario c ON rcp.id_cuestionario = c.id
+                                JOIN 
+                                    periodo p ON a.id_periodo = p.id
+                                JOIN 
+                                    programa prog ON rcp.id_programa = prog.id
+                                JOIN 
+                                    asignacion asig ON a.id = asig.id_apertura
+                                LEFT JOIN (
+                                    SELECT DISTINCT id_estudiante, id_apertura 
+                                    FROM intento_cuestionario
+                                    WHERE completado = 1
+                                ) ic ON ic.id_estudiante = asig.id_estudiante AND ic.id_apertura = a.id
+                                WHERE 
+                                    rcp.activo = 1
+                                GROUP BY 
+                                    a.id, c.id
+                                ORDER BY 
+                                    p.fecha_inicio DESC, c.titulo ASC";
+        $stmt = $db->prepare($query_seguimiento);
+            }else{
+                $query_seguimiento = "SELECT
                                     a.id as apertura_id,
                                     c.id as cuestionario_id,
                                     c.titulo,
@@ -197,6 +236,8 @@ class seguimiento_controller extends BaseController{
                                     p.fecha_inicio DESC, c.titulo ASC";
         $stmt = $db->prepare($query_seguimiento);
         $stmt->bindParam(':usuario_id', $user_id);
+            }
+
         $stmt->execute();
         $cuestionarios_seguimiento = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
