@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-09-2025 a las 08:58:56
+-- Tiempo de generación: 16-10-2025 a las 10:05:08
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -57,6 +57,14 @@ CREATE TABLE `campus` (
   `nombre` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
+--
+-- Volcado de datos para la tabla `campus`
+--
+
+INSERT INTO `campus` (`id`, `nombre`) VALUES
+(1, 'Cartagena'),
+(2, 'Barranquilla');
+
 -- --------------------------------------------------------
 
 --
@@ -83,7 +91,8 @@ CREATE TABLE `docente` (
   `identificacion` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
-  `programa_id` int(11) DEFAULT NULL
+  `programa_id` int(11) DEFAULT NULL,
+  `rol` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 -- --------------------------------------------------------
@@ -94,9 +103,9 @@ CREATE TABLE `docente` (
 
 CREATE TABLE `estudiante` (
   `id` int(11) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `identificacion` varchar(50) DEFAULT NULL,
   `nombre` varchar(255) NOT NULL,
+  `identificacion` varchar(50) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
@@ -127,6 +136,16 @@ CREATE TABLE `nivel` (
   `nombre` varchar(255) NOT NULL,
   `puntaje_maximo` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `nivel`
+--
+
+INSERT INTO `nivel` (`id`, `nombre`, `puntaje_maximo`) VALUES
+(1, 'Tecnico', 100),
+(2, 'Tecnologo', 200),
+(3, 'Profesional', 300),
+(4, 'Especializacion', 300);
 
 -- --------------------------------------------------------
 
@@ -188,6 +207,33 @@ CREATE TABLE `programa` (
   `id_campus` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
+--
+-- Volcado de datos para la tabla `programa`
+--
+
+INSERT INTO `programa` (`id`, `id_nivel`, `nombre`, `id_campus`) VALUES
+(2, 3, 'ADMINISTRACIÓN DE EMPRESAS', 1),
+(3, 3, 'BACTERIOLOGÍA', 1),
+(6, 3, 'ENFERMERÍA', 1),
+(9, 3, 'INSTRUMENTACIÓN QUIRÚRGICA', 1),
+(10, 3, 'MEDICINA', 1),
+(11, 3, 'ODONTOLOGÍA', 1),
+(12, 3, 'CONTADURÍA PÚBLICA', 1),
+(13, 3, 'DERECHO', 1),
+(14, 3, 'INGENIERÍA DE SISTEMAS', 1),
+(15, 2, 'TECNOLOGÍA EN ATENCIÓN PREHOSPITALARIA', 1),
+(17, 2, 'TECNOLOGÍA EN MECÁNICA DENTAL', 1),
+(18, 3, 'DERECHO', 2),
+(19, 3, 'TRABAJO SOCIAL', 1),
+(21, 2, 'TECNÓLOGIA EN SISTEMAS DE INFORMACIÓN Y DE SOFTWARE', 1),
+(22, 2, 'TECNOLOGÍA EN CONTABILIDAD SISTEMATIZADA', 1),
+(26, 3, 'TRABAJO SOCIAL', 2),
+(27, 3, 'ENFERMERÍA', 2),
+(28, 4, 'ESPECIALIZACIÓN EN EDUCACIÓN Y DIVERSIDAD', 1),
+(29, 3, 'LICENCIATURA EN EDUCACIÓN INFANTIL', 1),
+(30, 3, 'INGENIERÍA DE SOFTWARE', 1),
+(99, 3, 'GENERAL', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -208,31 +254,20 @@ CREATE TABLE `progreso_cuestionarios_intentos` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `raes_modulos`
+-- Estructura de tabla para la tabla `ra_niveles_indicadores`
 --
 
-CREATE TABLE `raes_modulos` (
-  `courseID` int(11) DEFAULT 0,
-  `cuestionario_id` int(11) NOT NULL DEFAULT 0,
+CREATE TABLE `ra_niveles_indicadores` (
+  `id` int(11) NOT NULL,
+  `cuestionario_id` int(11) NOT NULL,
   `abreviatura` varchar(10) NOT NULL,
   `descripcion` varchar(400) NOT NULL,
-  `programa_id` int(11) NOT NULL DEFAULT 0,
-  `id` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `raes_modulos_indicadores`
---
-
-CREATE TABLE `raes_modulos_indicadores` (
-  `moduloID` varchar(10) NOT NULL,
+  `programa_id` decimal(10,0) NOT NULL,
   `puntaje_min` decimal(10,2) DEFAULT NULL,
   `puntaje_max` decimal(10,2) DEFAULT NULL,
   `nivel` varchar(4) NOT NULL,
   `indicadores` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 -- --------------------------------------------------------
 
@@ -386,17 +421,10 @@ ALTER TABLE `progreso_cuestionarios_intentos`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indices de la tabla `raes_modulos`
+-- Indices de la tabla `ra_niveles_indicadores`
 --
-ALTER TABLE `raes_modulos`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `raes_modulos_ibfk_1` (`programa_id`);
-
---
--- Indices de la tabla `raes_modulos_indicadores`
---
-ALTER TABLE `raes_modulos_indicadores`
-  ADD PRIMARY KEY (`moduloID`,`nivel`);
+ALTER TABLE `ra_niveles_indicadores`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `relacion_cuestionario_programa`
@@ -411,7 +439,9 @@ ALTER TABLE `relacion_cuestionario_programa`
 -- Indices de la tabla `relacion_programa_estudiante`
 --
 ALTER TABLE `relacion_programa_estudiante`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `relacion_programa_estudiante_ibfk_2` (`programa_id`),
+  ADD KEY `estudiante_id` (`estudiante_id`);
 
 --
 -- Indices de la tabla `respuesta_estudiante`
@@ -453,7 +483,7 @@ ALTER TABLE `asignacion`
 -- AUTO_INCREMENT de la tabla `campus`
 --
 ALTER TABLE `campus`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `cuestionario`
@@ -483,7 +513,7 @@ ALTER TABLE `intento_cuestionario`
 -- AUTO_INCREMENT de la tabla `nivel`
 --
 ALTER TABLE `nivel`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `opcion_respuesta`
@@ -507,12 +537,18 @@ ALTER TABLE `preguntas`
 -- AUTO_INCREMENT de la tabla `programa`
 --
 ALTER TABLE `programa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT de la tabla `progreso_cuestionarios_intentos`
 --
 ALTER TABLE `progreso_cuestionarios_intentos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `ra_niveles_indicadores`
+--
+ALTER TABLE `ra_niveles_indicadores`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -564,13 +600,6 @@ ALTER TABLE `docente`
   ADD CONSTRAINT `docente_ibfk_1` FOREIGN KEY (`programa_id`) REFERENCES `programa` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `estudiante`
---
-ALTER TABLE `estudiante`
-  ADD CONSTRAINT `estudiante_ibfk_1` FOREIGN KEY (`id_programa`) REFERENCES `programa` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `programa_id` FOREIGN KEY (`id_programa`) REFERENCES `programa` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `intento_cuestionario`
 --
 ALTER TABLE `intento_cuestionario`
@@ -597,18 +626,6 @@ ALTER TABLE `programa`
   ADD CONSTRAINT `programa_ibfk_2` FOREIGN KEY (`id_campus`) REFERENCES `campus` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `raes_modulos`
---
-ALTER TABLE `raes_modulos`
-  ADD CONSTRAINT `raes_modulos_ibfk_1` FOREIGN KEY (`programa_id`) REFERENCES `programa` (`id`) ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `raes_modulos_indicadores`
---
-ALTER TABLE `raes_modulos_indicadores`
-  ADD CONSTRAINT `MODU_INDI` FOREIGN KEY (`moduloID`) REFERENCES `raes_modulos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `relacion_cuestionario_programa`
 --
 ALTER TABLE `relacion_cuestionario_programa`
@@ -620,16 +637,16 @@ ALTER TABLE `relacion_cuestionario_programa`
 -- Filtros para la tabla `relacion_programa_estudiante`
 --
 ALTER TABLE `relacion_programa_estudiante`
-  ADD CONSTRAINT `relacion_programa_estudiante_ibfk_1` FOREIGN KEY (`estudiante_id`) REFERENCES `estudiante` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `relacion_programa_estudiante_ibfk_2` FOREIGN KEY (`programa_id`) REFERENCES `programa` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_id` FOREIGN KEY (`estudiante_id`) REFERENCES `estudiante` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `relacion_programa_estudiante_ibfk_1` FOREIGN KEY (`programa_id`) REFERENCES `programa` (`id`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `respuesta_estudiante`
 --
 ALTER TABLE `respuesta_estudiante`
-  ADD CONSTRAINT `respuesta_estudiante_ibfk_1` FOREIGN KEY (`id_intento`) REFERENCES `intento_cuestionario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `respuesta_estudiante_ibfk_2` FOREIGN KEY (`id_pregunta`) REFERENCES `preguntas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `respuesta_estudiante_ibfk_3` FOREIGN KEY (`id_opcion_seleccionada`) REFERENCES `opcion_respuesta` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `respuesta_estudiante_ibfk_1` FOREIGN KEY (`id_intento`) REFERENCES `intento_cuestionario` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `respuesta_estudiante_ibfk_2` FOREIGN KEY (`id_pregunta`) REFERENCES `preguntas` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `respuesta_estudiante_ibfk_3` FOREIGN KEY (`id_opcion_seleccionada`) REFERENCES `opcion_respuesta` (`id`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `sesion_estudiante`
