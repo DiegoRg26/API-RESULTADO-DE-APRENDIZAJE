@@ -133,6 +133,207 @@ class genInformes_controller extends BaseController{
         }
     }
 
+    public function calcularPromedioEstudiante(Request $request, Response $response, Array $args): Response{
+        $db = null;
+        $stmt_estudiante = null;
+        $stmt_programa = null;
+        try{
+            $user_id = $this->getUserIdFromToken($request);
+            if(!$user_id){return $this->errorResponse($response, 'Usuario no autenticado', 401);}
+            $inputData = $this->getJsonInput($request);
+            if(!$inputData){return $this->errorResponse($response, 'Datos JSON inválidos', 400);}
+            
+            // Validar campos requeridos
+            if(!isset($inputData['estudiante_id']) || !isset($inputData['programa_id'])){
+                return $this->errorResponse($response, 'Faltan campos requeridos: estudiante_id, programa_id', 400);
+            }
+            
+            $db = $this->container->get('db');
+            $estudiante_id = $inputData['estudiante_id'];
+            $programa_id = $inputData['programa_id'];
+            $periodo_id = isset($inputData['periodo_id']) ? $inputData['periodo_id'] : null;
+            
+            // Construir condición de periodo si se proporciona
+            $periodo_condition = $periodo_id ? "AND p.id = :periodo_id" : "";
+            
+            // Calcular promedio del estudiante específico
+            $sql_estudiante = "SELECT 
+                                e.id AS estudiante_id,
+                                e.nombre AS estudiante_nombre,
+                                e.identificacion AS estudiante_identificacion,
+                                COUNT(DISTINCT ic.id) AS total_cuestionarios_completados,
+                                AVG(ic.puntaje_total) AS promedio_estudiante,
+                                MIN(ic.puntaje_total) AS puntaje_minimo,
+                                MAX(ic.puntaje_total) AS puntaje_maximo,
+                                SUM(ic.puntaje_total) AS suma_puntajes
+                            FROM 
+                                estudiante e
+                                INNER JOIN intento_cuestionario ic ON e.id = ic.id_estudiante
+                                INNER JOIN apertura a ON ic.id_apertura = a.id
+                                INNER JOIN periodo p ON a.id_periodo = p.id
+                                INNER JOIN relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                INNER JOIN programa prog ON rcp.id_programa = prog.id
+                            WHERE 
+                                e.id = :estudiante_id
+                                AND prog.id = :programa_id
+                                AND ic.completado = 1
+                                {$periodo_condition}
+                            GROUP BY 
+                                e.id, e.nombre, e.identificacion";
+            
+            $stmt_estudiante = $db->prepare($sql_estudiante);
+            $stmt_estudiante->bindParam(':estudiante_id', $estudiante_id, PDO::PARAM_INT);
+            $stmt_estudiante->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            if($periodo_id){
+                $stmt_estudiante->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+            $stmt_estudiante->execute();
+            $datos_estudiante = $stmt_estudiante->fetch(PDO::FETCH_ASSOC);
+            
+            // Si el estudiante no tiene cuestionarios completados
+            if(!$datos_estudiante){
+                return $this->successResponse($response, 'El estudiante no tiene cuestionarios completados en este programa', [
+                    'estudiante' => [
+                        'estudiante_id' => $estudiante_id,
+                        'promedio' => 0,
+                        'total_cuestionarios' => 0
+                    ],
+                    'programa' => [
+                        'promedio_general' => 0,
+                        'total_estudiantes' => 0
+                    ],
+                    'comparacion' => [
+                        'diferencia' => 0,
+                        'posicion' => null,
+                        'percentil' => 0
+                    ]
+                ]);
+            }
+            
+            // Calcular promedio general del programa
+            $sql_programa = "SELECT 
+                                COUNT(DISTINCT e.id) AS total_estudiantes,
+                                AVG(ic.puntaje_total) AS promedio_programa,
+                                MIN(ic.puntaje_total) AS puntaje_minimo_programa,
+                                MAX(ic.puntaje_total) AS puntaje_maximo_programa,
+                                STDDEV(ic.puntaje_total) AS desviacion_estandar
+                            FROM 
+                                estudiante e
+                                INNER JOIN intento_cuestionario ic ON e.id = ic.id_estudiante
+                                INNER JOIN apertura a ON ic.id_apertura = a.id
+                                INNER JOIN periodo p ON a.id_periodo = p.id
+                                INNER JOIN relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                INNER JOIN programa prog ON rcp.id_programa = prog.id
+                            WHERE 
+                                prog.id = :programa_id
+                                AND ic.completado = 1
+                                {$periodo_condition}";
+            
+            $stmt_programa = $db->prepare($sql_programa);
+            $stmt_programa->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            if($periodo_id){
+                $stmt_programa->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+            $stmt_programa->execute();
+            $datos_programa = $stmt_programa->fetch(PDO::FETCH_ASSOC);
+            
+            // Calcular posición del estudiante en el programa (ranking)
+            $sql_ranking = "SELECT 
+                                e.id,
+                                AVG(ic.puntaje_total) AS promedio
+                            FROM 
+                                estudiante e
+                                INNER JOIN intento_cuestionario ic ON e.id = ic.id_estudiante
+                                INNER JOIN apertura a ON ic.id_apertura = a.id
+                                INNER JOIN periodo p ON a.id_periodo = p.id
+                                INNER JOIN relacion_cuestionario_programa rcp ON a.id_relacion_cuestionario_programa = rcp.id
+                                INNER JOIN programa prog ON rcp.id_programa = prog.id
+                            WHERE 
+                                prog.id = :programa_id
+                                AND ic.completado = 1
+                                {$periodo_condition}
+                            GROUP BY 
+                                e.id
+                            ORDER BY 
+                                promedio DESC";
+            
+            $stmt_ranking = $db->prepare($sql_ranking);
+            $stmt_ranking->bindParam(':programa_id', $programa_id, PDO::PARAM_INT);
+            if($periodo_id){
+                $stmt_ranking->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+            $stmt_ranking->execute();
+            $ranking = $stmt_ranking->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Encontrar la posición del estudiante
+            $posicion = null;
+            $total_estudiantes_ranking = count($ranking);
+            foreach($ranking as $index => $estudiante_ranking){
+                if($estudiante_ranking['id'] == $estudiante_id){
+                    $posicion = $index + 1;
+                    break;
+                }
+            }
+            
+            // Calcular percentil
+            $percentil = $total_estudiantes_ranking > 0 
+                ? round((($total_estudiantes_ranking - $posicion + 1) / $total_estudiantes_ranking) * 100, 2)
+                : 0;
+            
+            // Calcular diferencia con el promedio del programa
+            $diferencia = round($datos_estudiante['promedio_estudiante'] - $datos_programa['promedio_programa'], 2);
+            
+            // Determinar rendimiento relativo
+            $rendimiento = 'promedio';
+            if($diferencia > 10){
+                $rendimiento = 'sobresaliente';
+            }elseif($diferencia > 0){
+                $rendimiento = 'superior';
+            }elseif($diferencia < -10){
+                $rendimiento = 'bajo';
+            }elseif($diferencia < 0){
+                $rendimiento = 'inferior';
+            }
+            
+            return $this->successResponse($response, 'Promedio calculado exitosamente', [
+                'estudiante' => [
+                    'estudiante_id' => (int)$datos_estudiante['estudiante_id'],
+                    'nombre' => $datos_estudiante['estudiante_nombre'],
+                    'identificacion' => $datos_estudiante['estudiante_identificacion'],
+                    'promedio' => round($datos_estudiante['promedio_estudiante'], 2),
+                    'puntaje_minimo' => round($datos_estudiante['puntaje_minimo'], 2),
+                    'puntaje_maximo' => round($datos_estudiante['puntaje_maximo'], 2),
+                    'total_cuestionarios_completados' => (int)$datos_estudiante['total_cuestionarios_completados']
+                ],
+                'programa' => [
+                    'programa_id' => $programa_id,
+                    'promedio_general' => round($datos_programa['promedio_programa'], 2),
+                    'puntaje_minimo' => round($datos_programa['puntaje_minimo_programa'], 2),
+                    'puntaje_maximo' => round($datos_programa['puntaje_maximo_programa'], 2),
+                    'desviacion_estandar' => round($datos_programa['desviacion_estandar'], 2),
+                    'total_estudiantes' => (int)$datos_programa['total_estudiantes']
+                ],
+                'comparacion' => [
+                    'diferencia' => $diferencia,
+                    'diferencia_porcentual' => $datos_programa['promedio_programa'] > 0 
+                        ? round(($diferencia / $datos_programa['promedio_programa']) * 100, 2) 
+                        : 0,
+                    'posicion' => $posicion,
+                    'total_estudiantes' => $total_estudiantes_ranking,
+                    'percentil' => $percentil,
+                    'rendimiento' => $rendimiento
+                ]
+            ]);
+            
+        }catch(Exception $e){
+            return $this->errorResponse($response, 'Error al calcular promedio: ' . $e->getMessage(), 500);
+        }finally{
+            if($stmt_estudiante !== null){$stmt_estudiante = null;}
+            if($stmt_programa !== null){$stmt_programa = null;}
+            if($db !== null){$db = null;}
+        }
+    }
+
     public function validarCuestionariosCompletados(Request $request, Response $response, Array $args): Response{
         $db = null;
         $stmt_asignados = null;
